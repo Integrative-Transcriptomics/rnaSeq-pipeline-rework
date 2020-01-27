@@ -19,7 +19,6 @@ def helpMessage() {
       --fraction              Fractional counts for multi-mapping/overlapping features (must be used together with -M or -O)
       --pubDir                The directory where the results will be stored [def: Results]
       --t                     The number of threads
-      --cpus                  The number of CPUs
     """.stripIndent()
 }
 
@@ -32,6 +31,7 @@ if (params.help){
 params.M = false
 params.O = false
 params.fraction = false
+params.t = 1
 if(params.fraction && !(params.O || params.M)){
   helpMessage()
   exit 0
@@ -41,6 +41,7 @@ pubDir = file(params.pubDir)
 genome_file = file(params.reference)
 gtf = file(params.gtf)
 
+threads = params.t
 multiMapping = params.M
 overlapping = params.O
 fraction = params.fraction
@@ -67,7 +68,7 @@ process fastqc {
 
   script:
     """
-      fastqc --quiet  $reads
+      fastqc --threads $threads --quiet $reads
     """
 }
 
@@ -88,7 +89,7 @@ process trimming {
 
   script:
     """
-      trim_galore --cores ${task.cpus} --dont_gzip --fastqc $read_file
+      trim_galore --dont_gzip --fastqc $read_file
     """
 }
 
@@ -100,7 +101,7 @@ process hisat2_index {
     file "${reference_genome.baseName}.*.ht2*" into hisat2_indeces
   script:
     """
-      hisat2-build -p 2 $reference_genome ${reference_genome.baseName}.hisat2_index
+      hisat2-build -p $threads $reference_genome ${reference_genome.baseName}.hisat2_index
     """
 }
 
@@ -119,7 +120,7 @@ process hisat2_mapping {
       hisat2 -x $index_name \
                    -U $reads \
                    --no-spliced-alignment \
-                   -p 2 \
+                   -p $threads \
                    --met-stderr \
                    --new-summary \
                    --dta \
@@ -170,7 +171,7 @@ process samtools {
 
   script:
   """
-    samtools sort -@ ${task.cpus} -o ${id}.sorted.bam $bam
+    samtools sort -@ $threads -o ${id}.sorted.bam $bam
     samtools index ${id}.sorted.bam
   """
 }
