@@ -11,7 +11,7 @@ def helpMessage() {
     Mandatory arguments:
       --reads                 FastQ input file containg the reads
       --reference             Input File in fasta format, nucleotide sequences. Each entry (">") is considered as one gene.
-      --gtf                   Input file in gtf format, annotations
+      --gff                   Input file in gff format, annotations
 
     Optional arguments:
       --M                     Count multi-mapping reads
@@ -39,7 +39,7 @@ if(params.fraction && !(params.O || params.M)){
 params.pubDir = "Results"
 pubDir = file(params.pubDir)
 genome_file = file(params.reference)
-gtf = file(params.gtf)
+gff_file = file(params.gff)
 
 threads = params.t
 multiMapping = params.M
@@ -51,6 +51,19 @@ Channel.fromFilePairs(params.reads, size: 1)
         .ifEmpty { exit 1, "Readfiles not specified" }
         .into { reads_fastQC; reads_trimgalore }
 
+process convertGFFtoGTF {
+    tag "$gff"
+    input:
+      file gff from gff_file
+
+    output:
+      file "${gff.baseName}.gtf" into gtf
+
+    script:
+      """
+        gffread $gff --keep-exon-attrs -F -T -o ${gff.baseName}.gtf
+      """
+}
 /*
 * FastQC
 */
