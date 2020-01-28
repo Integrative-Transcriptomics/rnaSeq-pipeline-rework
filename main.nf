@@ -230,7 +230,7 @@ process qualimap_bamqc {
   script:
   sorted_bam = "${id}.sorted.bam"
   """
-    qualimap bamqc -nt ${task.cpus} -bam $sorted_bam -outdir ${id}
+    qualimap bamqc -nt $threads -bam $sorted_bam -outdir ${id}
   """
 }
 
