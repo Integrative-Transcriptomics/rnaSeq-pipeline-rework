@@ -18,7 +18,6 @@ def helpMessage() {
       --O                     Count reads overlapping features
       --fraction              Fractional counts for multi-mapping/overlapping features (must be used together with -M or -O)
       --pubDir                The directory where the results will be stored [def: Results]
-      --t                     The number of threads
     """.stripIndent()
 }
 
@@ -31,7 +30,6 @@ if (params.help){
 params.M = false
 params.O = false
 params.fraction = false
-params.t = 1
 if(params.fraction && !(params.O || params.M)){
   helpMessage()
   exit 0
@@ -41,7 +39,6 @@ pubDir = file(params.pubDir)
 genome_file = file(params.reference)
 gff_file = file(params.gff)
 
-threads = params.t
 multiMapping = params.M
 overlapping = params.O
 fraction = params.fraction
@@ -108,7 +105,7 @@ process fastqc {
 
   script:
     """
-      fastqc --threads $threads --quiet $reads
+      fastqc --threads ${task.cpus} --quiet $reads
     """
 }
 
@@ -141,7 +138,7 @@ process hisat2_index {
     file "${reference_genome.baseName}.*.ht2*" into hisat2_indeces
   script:
     """
-      hisat2-build -p $threads $reference_genome ${reference_genome.baseName}.hisat2_index
+      hisat2-build -p ${task.cpus} $reference_genome ${reference_genome.baseName}.hisat2_index
     """
 }
 
@@ -160,7 +157,7 @@ process hisat2_mapping {
       hisat2 -x $index_name \
                    -U $reads \
                    --no-spliced-alignment \
-                   -p $threads \
+                   -p ${task.cpus} \
                    --met-stderr \
                    --new-summary \
                    --summary-file ${id}_summary.txt --rg-id ${id} --rg SM:${id} \
@@ -212,7 +209,7 @@ process samtools {
 
   script:
   """
-    samtools sort -@ $threads -o ${id}.sorted.bam $bam
+    samtools sort -@ ${task.cpus} -o ${id}.sorted.bam $bam
     samtools index ${id}.sorted.bam
   """
 }
@@ -231,7 +228,7 @@ process qualimap_bamqc {
   script:
   sorted_bam = "${id}.sorted.bam"
   """
-    qualimap bamqc -nt $threads -bam $sorted_bam -outdir ${id}
+    qualimap bamqc -nt ${task.cpus} -bam $sorted_bam -outdir ${id}
   """
 }
 
