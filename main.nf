@@ -81,7 +81,7 @@ process convertGFFtoGTF {
       """
 }
 /*
-* FastQC
+* FastQC for raw reads
 */
 process fastqc {
   tag "$id"
@@ -157,7 +157,7 @@ process hisat2_mapping {
       """
 }
 
-// counts features
+// 4) counts features
 process featureCounts {
   input:
     file annotation from gtf
@@ -167,17 +167,17 @@ process featureCounts {
     tuple id, file("${id}.featureCounts.txt") into feature_counts
     tuple id, file("${id}.featureCounts.txt.summary") into featureCounts_logs
   script:
-    M=""
-    O=""
-    frac=""
+    M = ""
+    O = ""
+    frac = ""
     if(multiMapping){
-      M="-M"
+      M = "-M"
     }
     if(overlapping){
-      O="-O"
+      O = "-O"
     }
     if(fraction){
-      frac="--fraction"
+      frac = "--fraction"
     }
     """
     featureCounts -a $annotation -t exon -g gene_id --extraAttributes gene_name -o ${id}.featureCounts.txt $M $O $frac $bam
@@ -223,9 +223,7 @@ process qualimap_bamqc {
   """
 }
 
-/*
- * STEP 14 - MultiQC
- */
+// MultiQC
 process multiqc {
     publishDir "${pubDir}/MultiQC", mode: 'copy'
 
