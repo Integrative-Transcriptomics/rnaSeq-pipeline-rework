@@ -88,7 +88,7 @@ process convertGFFtoGTF {
 
     script:
       """
-        gffread $gff --keep-exon-attrs -F -T -o ${gff.baseName}.gtf
+        gffread $gff -F -T -o ${gff.baseName}.gtf
       """
 }
 /*
