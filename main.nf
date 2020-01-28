@@ -206,7 +206,9 @@ process samtools {
     tuple id, file(bam) from alignment_files
 
   output:
-    tuple id, file ("${id}.sorted.bam*") into sorted_alignment_files
+    tuple id, file ("${id}.sorted.bam*") into sorted_alignment_files_bamqc
+    tuple id, file ("${id}.sorted.bam*") into sorted_alignment_files_rnaseq
+
 
   script:
   """
@@ -216,22 +218,37 @@ process samtools {
 }
 
 // Qualimap auf Bam
+/*
 process qualimap_bamqc {
   tag "$id"
-  cpus 4
-  publishDir "$pubDir/QualiMaps/", mode: 'copy'
+  publishDir "$pubDir/QualiMapsBamQC/", mode: 'copy'
 
   input:
-    tuple id, file(bam) from sorted_alignment_files
+    tuple id, file(bam) from sorted_alignment_files_bamqc
 
   output:
-    tuple id, file("${id}") into qualimap_results
+    tuple id, file("${id}") into qualimap_bamqc_results
 
   script:
   sorted_bam = "${id}.sorted.bam"
   """
     qualimap bamqc -nt $threads -bam $sorted_bam -outdir ${id}
   """
+}*/
+
+process qualimap_rnaseq {
+  tag "$id"
+  publishDir "$pubDir/QualiMapsRNAseq/", mode: 'copy'
+  input:
+    tuple id, file(bam) from sorted_alignment_files_rnaseq
+    file annotation from gtf
+  output:
+    tuple id, file("${id}") into qualimap_rnaseq_results
+  script:
+  sorted_bam = "${id}.sorted.bam"
+    """
+      qualimap rnaseq -bam $sorted_bam -gtf $annotation -outdir ${id}
+    """
 }
 
 // MultiQC
@@ -242,7 +259,8 @@ process multiqc {
     file (fastqc:'fastqc/*') from fastqc_results.collect().ifEmpty([])
     file ('trimgalore/*') from trimgalore_results.collect().ifEmpty([])
     file ('alignment/*') from alignment_logs.collect().ifEmpty([])
-    file ('qualimap/*') from qualimap_results.collect().ifEmpty([])
+    file ('qualimapBAMQC/*') from qualimap_bamqc_results.collect().ifEmpty([])
+    file ('qualimapRNAseq/*') from qualimap_rnaseq_results.collect().ifEmpty([])
     file ('featureCounts/*') from featureCounts_logs.collect().ifEmpty([])
 
     output:
