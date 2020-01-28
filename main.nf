@@ -259,7 +259,7 @@ process multiqc {
     file (fastqc:'fastqc/*') from fastqc_results.collect().ifEmpty([])
     file ('trimgalore/*') from trimgalore_results.collect().ifEmpty([])
     file ('alignment/*') from alignment_logs.collect().ifEmpty([])
-    file ('qualimapBAMQC/*') from qualimap_bamqc_results.collect().ifEmpty([])
+    //file ('qualimapBAMQC/*') from qualimap_bamqc_results.collect().ifEmpty([])
     file ('qualimapRNAseq/*') from qualimap_rnaseq_results.collect().ifEmpty([])
     file ('featureCounts/*') from featureCounts_logs.collect().ifEmpty([])
 
