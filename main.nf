@@ -191,7 +191,7 @@ process featureCounts {
       frac = "--fraction"
     }
     """
-    featureCounts -a $annotation -t exon -g gene_id --extraAttributes gene_name -o ${id}.featureCounts.txt $M $O $frac $bam
+    featureCounts -a $annotation -t gene -g gene_id --extraAttributes gene_name -o ${id}.featureCounts.txt $M $O $frac $bam
     """
 }
 
