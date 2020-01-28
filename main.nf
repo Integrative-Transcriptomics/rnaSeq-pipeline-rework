@@ -10,7 +10,7 @@ def helpMessage() {
 
     Mandatory arguments:
       --reads                 FastQ input file containg the reads
-      --reference             Input File in fasta format, nucleotide sequences. Each entry (">") is considered as one gene.
+      --reference             Input File in fasta format (gz), nucleotide sequences. Each entry (">") is considered as one gene.
       --gff                   Input file in gff format, annotations
 
     Optional arguments:
@@ -51,6 +51,22 @@ Channel.fromFilePairs(params.reads, size: 1)
         .ifEmpty { exit 1, "Readfiles not specified" }
         .into { reads_fastQC; reads_trimgalore }
 
+/*
+Unzip genome file
+*/
+process unZipGenome {
+  input:
+    file zipped_genome from genome_file
+  output:
+    file "${zipped_genome.baseName}" into genome_fasta
+  script:
+    """
+      gunzip -c $zipped_genome > ${zipped_genome.baseName}
+    """
+}
+/*
+Convert GFF to GTF
+*/
 process convertGFFtoGTF {
     tag "$gff"
     input:
@@ -109,7 +125,7 @@ process trimming {
 // 2) Create hisat_index
 process hisat2_index {
   input:
-    file reference_genome from genome_file
+    file reference_genome from genome_fasta
   output:
     file "${reference_genome.baseName}.*.ht2*" into hisat2_indeces
   script:
@@ -136,7 +152,6 @@ process hisat2_mapping {
                    -p $threads \
                    --met-stderr \
                    --new-summary \
-                   --dta \
                    --summary-file ${id}_summary.txt --rg-id ${id} --rg SM:${id} \
                    | samtools view -bS -F 4 -F 8 -F 256 - > ${id}.bam
       """
