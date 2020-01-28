@@ -218,7 +218,6 @@ process samtools {
 }
 
 // Qualimap auf Bam
-/*
 process qualimap_bamqc {
   tag "$id"
   publishDir "$pubDir/QualiMapsBamQC/", mode: 'copy'
@@ -234,7 +233,7 @@ process qualimap_bamqc {
   """
     qualimap bamqc -nt $threads -bam $sorted_bam -outdir ${id}
   """
-}*/
+}
 
 process qualimap_rnaseq {
   tag "$id"
@@ -259,7 +258,7 @@ process multiqc {
     file (fastqc:'fastqc/*') from fastqc_results.collect().ifEmpty([])
     file ('trimgalore/*') from trimgalore_results.collect().ifEmpty([])
     file ('alignment/*') from alignment_logs.collect().ifEmpty([])
-    //file ('qualimapBAMQC/*') from qualimap_bamqc_results.collect().ifEmpty([])
+    file ('qualimapBAMQC/*') from qualimap_bamqc_results.collect().ifEmpty([])
     file ('qualimapRNAseq/*') from qualimap_rnaseq_results.collect().ifEmpty([])
     file ('featureCounts/*') from featureCounts_logs.collect().ifEmpty([])
 
