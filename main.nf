@@ -64,13 +64,24 @@ process unZipGenome {
       gunzip -c $zipped_genome > ${zipped_genome.baseName}
     """
 }
+
+process unZipGFF{
+  input:
+    file zipped_gff from gff_file
+  output:
+    file "${zipped_gff.baseName}" into gff3
+  script:
+    """
+      gunzip -c $zipped_gff > ${zipped_gff.baseName}
+    """
+}
 /*
 Convert GFF to GTF
 */
 process convertGFFtoGTF {
     tag "$gff"
     input:
-      file gff from gff_file
+      file gff from gff3
 
     output:
       file "${gff.baseName}.gtf" into gtf
