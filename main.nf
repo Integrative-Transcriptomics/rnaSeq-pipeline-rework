@@ -14,6 +14,7 @@ def helpMessage() {
       --gff                   Input file in gff format, annotations
 
     Optional arguments:
+      --S                     reverse of forward strandness (default: reverse)
       --M                     Count multi-mapping reads
       --O                     Count reads overlapping features
       --fraction              Fractional counts for multi-mapping/overlapping features (must be used together with -M or -O)
@@ -27,6 +28,7 @@ if (params.help){
     helpMessage()
     exit 0
 }
+params.S = 'reverse'
 params.M = false
 params.O = false
 params.fraction = false
@@ -39,6 +41,7 @@ pubDir = file(params.pubDir)
 genome_file = file(params.reference)
 gff_file = file(params.gff)
 
+strandness = params.S
 multiMapping = params.M
 overlapping = params.O
 fraction = params.fraction
@@ -153,11 +156,16 @@ process hisat2_mapping {
       tuple id, file("*_summary.txt") into alignment_logs
     script:
       index_name = indeces[0].toString() - ~/.\d.ht2l?/
+      s = "R"
+      if(strandness != "reverse"){
+        s = "F"
+      }
+
       """
       hisat2 -x $index_name \
                    -U $reads \
                    --no-spliced-alignment \
-                   --rna-strandness R \
+                   --rna-strandness $s \
                    -p ${task.cpus} \
                    --met-stderr \
                    --new-summary \
@@ -179,6 +187,10 @@ process featureCounts {
     M = ""
     O = ""
     frac = ""
+    s = "2"
+    if(strandness != "reverse"){
+      s = "1"
+    }
     if(multiMapping){
       M = "-M"
     }
@@ -189,7 +201,7 @@ process featureCounts {
       frac = "--fraction"
     }
     """
-    featureCounts -a $annotation -s 2 -t transcript -g locus_tag --extraAttributes gene_name -o counts.txt $M $O $frac $bams
+    featureCounts -a $annotation -s $s -t transcript -g locus_tag --extraAttributes gene_name -o counts.txt $M $O $frac $bams
     """
 }
 
