@@ -121,7 +121,7 @@ process trimming {
 
   output:
     set id, file("*_trimmed.fq") into ch_trimmed
-    file "*_fastqc.{zip,html}" into trimgalore_fastqc_reports
+    file "*_fastqc.{zip,html}" into trimgalore_fastqc_results
     file "*trimming_report.txt" into trimgalore_results
 
   script:
@@ -149,7 +149,7 @@ process hisat2_mapping {
       tuple id, file(reads) from ch_trimmed
     output:
       tuple id, file("*.bam")into alignment_files
-      tuple id, file("*.bam")into alignment_files_fc
+      file("*.bam")into alignment_files_fc
       tuple id, file("*_summary.txt") into alignment_logs
     script:
       index_name = indeces[0].toString() - ~/.\d.ht2l?/
@@ -157,6 +157,7 @@ process hisat2_mapping {
       hisat2 -x $index_name \
                    -U $reads \
                    --no-spliced-alignment \
+                   --rna-strandness R \
                    -p ${task.cpus} \
                    --met-stderr \
                    --new-summary \
@@ -169,11 +170,11 @@ process hisat2_mapping {
 process featureCounts {
   input:
     file annotation from gtf
-    tuple id, file(bam) from alignment_files_fc
+    file(bams) from alignment_files_fc.collect()
     publishDir "$pubDir/FeatureCounts/", mode: 'copy'
   output:
-    tuple id, file("${id}.featureCounts.txt") into feature_counts
-    tuple id, file("${id}.featureCounts.txt.summary") into featureCounts_logs
+    file("counts.txt") into feature_counts
+    file("counts.txt.summary") into featureCounts_logs
   script:
     M = ""
     O = ""
@@ -188,7 +189,7 @@ process featureCounts {
       frac = "--fraction"
     }
     """
-    featureCounts -a $annotation -t transcript -g gene_id --extraAttributes gene_name -o ${id}.featureCounts.txt $M $O $frac $bam
+    featureCounts -a $annotation -s 2 -t transcript -g locus_tag --extraAttributes gene_name -o counts.txt $M $O $frac $bams
     """
 }
 
@@ -254,6 +255,7 @@ process multiqc {
     input:
     file (fastqc:'fastqc/*') from fastqc_results.collect().ifEmpty([])
     file ('trimgalore/*') from trimgalore_results.collect().ifEmpty([])
+    file ('trimgaloreFastQC/*') from trimgalore_fastqc_results.collect().ifEmpty([])
     file ('alignment/*') from alignment_logs.collect().ifEmpty([])
     file ('qualimapBAMQC/*') from qualimap_bamqc_results.collect().ifEmpty([])
     file ('qualimapRNAseq/*') from qualimap_rnaseq_results.collect().ifEmpty([])
