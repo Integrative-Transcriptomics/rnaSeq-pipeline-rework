@@ -32,7 +32,7 @@ if (params.help){
 }
 params.hisatS = 'unstranded'
 params.featureCountsS = 'unstranded'
-params.G = 'locus_tag'
+params.g = 'locus_tag'
 params.M = false
 params.O = false
 params.fraction = false
