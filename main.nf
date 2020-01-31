@@ -14,7 +14,9 @@ def helpMessage() {
       --gff                   Input file in gff format, annotations
 
     Optional arguments:
-      --S                     unstranded, reverse or forward strandness (default: unstranded)
+      --hisatS                unstranded, reverse or forward strandness (default: unstranded)
+      --featureCountsS        unstranded, reverse or forward strandness (default: unstranded)
+      --g                     FeatureCounts attribute to group features (default: locus_tag)
       --M                     Count multi-mapping reads
       --O                     Count reads overlapping features
       --fraction              Fractional counts for multi-mapping/overlapping features (must be used together with -M or -O)
@@ -28,7 +30,9 @@ if (params.help){
     helpMessage()
     exit 0
 }
-params.S = 'unstranded'
+params.hisatS = 'unstranded'
+params.featureCountsS = 'unstranded'
+params.G = 'locus_tag'
 params.M = false
 params.O = false
 params.fraction = false
@@ -41,7 +45,9 @@ pubDir = file(params.pubDir)
 genome_file = file(params.reference)
 gff_file = file(params.gff)
 
-strandness = params.S
+hisatStrandness = params.hisatS
+fcStrandness = params.featureCountsS
+featureCounts_g = params.g
 multiMapping = params.M
 overlapping = params.O
 fraction = params.fraction
@@ -116,11 +122,14 @@ process fastqc {
 // 1) Trimm the reads
 process trimming {
   tag "$id"
-  cpus 4
-
   input:
     tuple id, file( read_file ) from reads_trimgalore
-    publishDir "$pubDir/Trimgalore/", mode: 'copy'
+    publishDir "$pubDir/Trimgalore/", mode: 'copy',
+      saveAs: {filename ->
+        if (filename.indexOf("_fastqc") > 0) "FastQC/$filename"
+        else if (filename.indexOf("trimming_report.txt") > 0) "logs/$filename"
+        else null
+}
 
   output:
     set id, file("*_trimmed.fq") into ch_trimmed
@@ -158,9 +167,9 @@ process hisat2_mapping {
       index_name = indeces[0].toString() - ~/.\d.ht2l?/
       nofw = ""
       norc = ""
-      if(strandness == "reverse"){
+      if(hisatStrandness == "reverse"){
         nofw = "--nofw"
-      } else if(strandness == 'forward'){
+      } else if(hisatStrandness == 'forward'){
         norc = "--norc"
       }
       """
@@ -180,6 +189,7 @@ process hisat2_mapping {
 // 4) counts features
 process featureCounts {
   input:
+    val g from featureCounts_g
     file annotation from gtf
     file(bams) from alignment_files_fc.collect()
     publishDir "$pubDir/FeatureCounts/", mode: 'copy'
@@ -191,9 +201,9 @@ process featureCounts {
     O = ""
     frac = ""
     s = "0"
-    if(strandness == "forward"){
+    if(fcStrandness == "forward"){
       s = "1"
-    } else if(strandness == "reverse"){
+    } else if(fcStrandness == "reverse"){
       s = "2"
     }
     if(multiMapping){
@@ -206,7 +216,7 @@ process featureCounts {
       frac = "--fraction"
     }
     """
-    featureCounts -a $annotation -s $s -t transcript -g locus_tag --extraAttributes gene_name -o counts.txt $M $O $frac $bams
+    featureCounts -a $annotation -s $s -t transcript -g $g --extraAttributes gene_name -o counts.txt $M $O $frac $bams
     """
 }
 

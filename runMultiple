@@ -1,0 +1,23 @@
+#!/bin/bash
+SCRIPT=$1
+REF=$2
+GFF=$3
+READS=$4
+
+mkdir hisat2U_fcR
+cd hisat2U_fcR
+nextflow run $SCRIPT/main.nf --reads $READS --reference $REF --gff $GFF --hisatS unstranded --featureCountsS reverse -profile conda
+rm -r work
+cd ..
+
+mkdir hisat2R_fcR
+cd hisat2R_fcR
+nextflow run $SCRIPT/main.nf $SCRIPT --reads $READS --reference $REF --gff $GFF --hisatS reverse --featureCountsS reverse -profile conda
+rm -r work
+cd ..
+
+mkdir hisat2F_fcF
+cd hisat2F_fcF
+nextflow run $SCRIPT/main.nf $SCRIPT --reads $READS --reference $REF --gff $GFF --hisatS forward --featureCountsS forward -profile conda
+rm -r work
+cd ..
