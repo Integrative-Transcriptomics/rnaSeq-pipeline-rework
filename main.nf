@@ -14,7 +14,7 @@ def helpMessage() {
       --gff                   Input file in gff format, annotations
 
     Optional arguments:
-      --S                     reverse of forward strandness (default: reverse)
+      --S                     unstranded, reverse or forward strandness (default: unstranded)
       --M                     Count multi-mapping reads
       --O                     Count reads overlapping features
       --fraction              Fractional counts for multi-mapping/overlapping features (must be used together with -M or -O)
@@ -28,7 +28,7 @@ if (params.help){
     helpMessage()
     exit 0
 }
-params.S = 'reverse'
+params.S = 'unstranded'
 params.M = false
 params.O = false
 params.fraction = false
@@ -156,17 +156,20 @@ process hisat2_mapping {
       tuple id, file("*_summary.txt") into alignment_logs
     script:
       index_name = indeces[0].toString() - ~/.\d.ht2l?/
-      s = "R"
-      if(strandness != "reverse"){
-        s = "F"
+      nofw = ""
+      norc = ""
+      if(strandness == "reverse"){
+        nofw = "--nofw"
+      } else if(strandness == 'forward'){
+        norc = "--norc"
       }
-
       """
       hisat2 -x $index_name \
                    -U $reads \
                    --no-spliced-alignment \
-                   --rna-strandness $s \
                    -p ${task.cpus} \
+                   $nofw \
+                   $norc \
                    --met-stderr \
                    --new-summary \
                    --summary-file ${id}_summary.txt --rg-id ${id} --rg SM:${id} \
@@ -187,9 +190,11 @@ process featureCounts {
     M = ""
     O = ""
     frac = ""
-    s = "2"
-    if(strandness != "reverse"){
+    s = "0"
+    if(strandness == "forward"){
       s = "1"
+    } else if(strandness == "reverse"){
+      s = "2"
     }
     if(multiMapping){
       M = "-M"
