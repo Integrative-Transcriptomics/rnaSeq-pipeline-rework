@@ -17,6 +17,7 @@ def helpMessage() {
       --hisatS                unstranded, reverse or forward strandness (default: unstranded)
       --featureCountsS        unstranded, reverse or forward strandness (default: unstranded)
       --g                     FeatureCounts attribute to group features (default: locus_tag)
+      --t                     FeatureCounts attribute that should be counted (default: transcript)
       --M                     Count multi-mapping reads
       --O                     Count reads overlapping features
       --fraction              Fractional counts for multi-mapping/overlapping features (must be used together with -M or -O)
@@ -33,6 +34,7 @@ if (params.help){
 params.hisatS = 'unstranded'
 params.featureCountsS = 'unstranded'
 params.g = 'locus_tag'
+params.t = 'transcript'
 params.M = false
 params.O = false
 params.fraction = false
@@ -48,6 +50,7 @@ gff_file = file(params.gff)
 hisatStrandness = params.hisatS
 fcStrandness = params.featureCountsS
 featureCounts_g = params.g
+featureCounts_t = params.t
 multiMapping = params.M
 overlapping = params.O
 fraction = params.fraction
@@ -190,6 +193,7 @@ process hisat2_mapping {
 process featureCounts {
   input:
     val g from featureCounts_g
+    val t from featireCounts_t
     file annotation from gtf
     file(bams) from alignment_files_fc.collect()
     publishDir "$pubDir/FeatureCounts/", mode: 'copy'
@@ -216,7 +220,7 @@ process featureCounts {
       frac = "--fraction"
     }
     """
-    featureCounts -a $annotation -s $s -t transcript -g $g --extraAttributes gene_name -o counts.txt $M $O $frac $bams
+    featureCounts -a $annotation -s $s -t $t -g $g --extraAttributes gene_name -o counts.txt $M $O $frac $bams
     """
 }
 
