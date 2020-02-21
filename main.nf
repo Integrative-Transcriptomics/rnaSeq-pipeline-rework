@@ -14,6 +14,7 @@ def helpMessage() {
       --gff                   Input file in gff format, annotations
 
     Optional arguments:
+      --noQuali               Disable quality control
       --hisatS                unstranded, reverse or forward strandness (default: unstranded)
       --featureCountsS        unstranded, reverse or forward strandness (default: unstranded)
       --g                     FeatureCounts attribute to group features (default: locus_tag)
@@ -31,6 +32,7 @@ if (params.help){
     helpMessage()
     exit 0
 }
+params.noQuali = false
 params.hisatS = 'unstranded'
 params.featureCountsS = 'unstranded'
 params.g = 'locus_tag'
@@ -47,6 +49,7 @@ pubDir = file(params.pubDir)
 genome_file = file(params.reference)
 gff_file = file(params.gff)
 
+noQualiControl = params.noQuali
 hisatStrandness = params.hisatS
 fcStrandness = params.featureCountsS
 featureCounts_g = params.g
@@ -193,7 +196,7 @@ process hisat2_mapping {
 process featureCounts {
   input:
     val g from featureCounts_g
-    val t from featireCounts_t
+    val t from featureCounts_t
     file annotation from gtf
     file(bams) from alignment_files_fc.collect()
     publishDir "$pubDir/FeatureCounts/", mode: 'copy'
@@ -250,7 +253,8 @@ process samtools {
 process qualimap_bamqc {
   tag "$id"
   publishDir "$pubDir/QualiMapsBamQC/", mode: 'copy'
-
+  when:
+  noQualiControl == false
   input:
     tuple id, file(bam) from sorted_alignment_files_bamqc
 
@@ -267,6 +271,8 @@ process qualimap_bamqc {
 process qualimap_rnaseq {
   tag "$id"
   publishDir "$pubDir/QualiMapsRNAseq/", mode: 'copy'
+  when:
+  noQualiControl == false
   input:
     tuple id, file(bam) from sorted_alignment_files_rnaseq
     file annotation from gtf
@@ -283,6 +289,8 @@ process qualimap_rnaseq {
 process multiqc {
     publishDir "${pubDir}/MultiQC", mode: 'copy'
 
+    when:
+    noQualiControl == false
     input:
     file (fastqc:'fastqc/*') from fastqc_results.collect().ifEmpty([])
     file ('trimgalore/*') from trimgalore_results.collect().ifEmpty([])
