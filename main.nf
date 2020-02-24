@@ -6,7 +6,7 @@ def helpMessage() {
     ==------------------------------------==
     Usage:
     The typical command for running the pipeline is as follows:
-    nextflow run main.nf --reads  "*.fastq.gz" --reference <.fna> -profile conda
+    nextflow run main.nf --reads  "*.fastq.gz" --reference <.fna.gz> --gff <.gff.gz> -profile conda
 
     Mandatory arguments:
       --reads                 FastQ input file containg the reads
@@ -16,7 +16,7 @@ def helpMessage() {
     Optional arguments:
       --noQuali               Disable quality control
       --hisatS                unstranded, reverse or forward strandness (default: unstranded)
-      --featureCountsS        unstranded, reverse or forward strandness (default: unstranded)
+      --featureCountsS        unstranded, reverse or forward strandness (default: reverse)
       --g                     FeatureCounts attribute to group features (default: locus_tag)
       --t                     FeatureCounts attribute that should be counted (default: transcript)
       --extraAttributes       FeatureCounts extra attriutes divided by comma (default: gene_name)
@@ -35,7 +35,7 @@ if (params.help){
 }
 params.noQuali = false
 params.hisatS = 'unstranded'
-params.featureCountsS = 'unstranded'
+params.featureCountsS = 'reverse'
 params.g = 'locus_tag'
 params.t = 'transcript'
 params.extraAttributes = 'gene_name'
