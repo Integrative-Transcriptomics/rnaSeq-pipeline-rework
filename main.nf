@@ -114,7 +114,8 @@ process fastqc {
   label 'process_medium'
   publishDir "$pubDir/fastqc", mode: 'copy',
      saveAs: { filename -> filename.indexOf(".zip") > 0 ? "zips/$filename" : "$filename" }
-
+  when:
+  noQualiControl == false
   input:
     tuple id, file(reads) from reads_fastQC
 
