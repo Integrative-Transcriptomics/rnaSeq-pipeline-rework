@@ -15,6 +15,7 @@ def helpMessage() {
 
     Optional arguments:
       --noQuali               Disable quality control
+      --noCounts              Disable feature counts
       --hisatS                unstranded, reverse or forward strandness (default: unstranded)
       --featureCountsS        unstranded, reverse or forward strandness (default: reverse)
       --g                     FeatureCounts attribute to group features (default: locus_tag)
@@ -34,6 +35,7 @@ if (params.help){
     exit 0
 }
 params.noQuali = false
+params.noCounts = false
 params.hisatS = 'unstranded'
 params.featureCountsS = 'reverse'
 params.g = 'locus_tag'
@@ -52,6 +54,7 @@ genome_file = file(params.reference)
 gff_file = file(params.gff)
 
 noQualiControl = params.noQuali
+noFC = params.noCounts
 hisatStrandness = params.hisatS
 fcStrandness = params.featureCountsS
 featureCounts_g = params.g
@@ -205,6 +208,8 @@ process featureCounts {
     file annotation from gtf
     file(bams) from alignment_files_fc.collect()
     publishDir "$pubDir/FeatureCounts/", mode: 'copy'
+    when:
+    noFC == false
   output:
     file("counts.txt") into feature_counts
     file("counts.txt.summary") into featureCounts_logs
