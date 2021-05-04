@@ -150,9 +150,15 @@ process trimming {
     file "*trimming_report.txt" into trimgalore_results
 
   script:
+  if(!isPaired){
     """
       trim_galore --dont_gzip --fastqc $read_file
     """
+  }else{
+    """
+      trim_galore --dont_gzip --paired --retain_unpaired --fastqc ${read_file[0]} ${read_file[1]}
+    """
+  }
 }
 
 // 2) Create hisat_index
