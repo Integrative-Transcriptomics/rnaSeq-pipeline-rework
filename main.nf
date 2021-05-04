@@ -14,9 +14,9 @@ def helpMessage() {
       --gff                   Input file in gff format, annotations
 
     Optional arguments:
+      --paired                Paired end reads
       --noQuali               Disable quality control
       --noCounts              Disable feature counts
-      --hisatS                unstranded, reverse or forward strandness (default: unstranded)
       --featureCountsS        unstranded, reverse or forward strandness (default: reverse)
       --g                     FeatureCounts attribute to group features (default: locus_tag)
       --t                     FeatureCounts attribute that should be counted (default: transcript)
@@ -34,9 +34,9 @@ if (params.help){
     helpMessage()
     exit 0
 }
+params.paired = false
 params.noQuali = false
 params.noCounts = false
-params.hisatS = 'unstranded'
 params.featureCountsS = 'reverse'
 params.g = 'locus_tag'
 params.t = 'transcript'
@@ -53,9 +53,9 @@ pubDir = file(params.pubDir)
 genome_file = file(params.reference)
 gff_file = file(params.gff)
 
+isPaired = params.paired
 noQualiControl = params.noQuali
 noFC = params.noCounts
-hisatStrandness = params.hisatS
 fcStrandness = params.featureCountsS
 featureCounts_g = params.g
 featureCounts_t = params.t
@@ -178,25 +178,29 @@ process hisat2_mapping {
       tuple id, file("*_summary.txt") into alignment_logs
     script:
       index_name = indeces[0].toString() - ~/.\d.ht2l?/
-      nofw = ""
-      norc = ""
-      if(hisatStrandness == "reverse"){
-        nofw = "--nofw"
-      } else if(hisatStrandness == 'forward'){
-        norc = "--norc"
-      }
+      if(!isPaired){
       """
       hisat2 -x $index_name \
                    -U $reads \
                    --no-spliced-alignment \
                    -p ${task.cpus} \
-                   $nofw \
-                   $norc \
                    --met-stderr \
                    --new-summary \
                    --summary-file ${id}_summary.txt --rg-id ${id} --rg SM:${id} \
                    | samtools view -bS -F 4 -F 8 -F 256 - > ${id}.bam
       """
+    } else{
+      """
+      hisat2 -x $index_name \
+                   --1 ${reads[0]} \
+                   --2 ${reads[1]} \\
+                   -p ${task.cpus} \
+                   --met-stderr \
+                   --new-summary \
+                   --summary-file ${id}_summary.txt --rg-id ${id} --rg SM:${id} \
+                   | samtools view -bS -F 4 -F 8 -F 256 - > ${id}.bam
+      """
+    }
 }
 
 // 4) counts features
