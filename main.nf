@@ -65,9 +65,15 @@ overlapping = params.O
 fraction = params.fraction
 
 // The basic input of the Pipeline. based on the Read name, a <base>_reference.info file is locatad, containing the information of the reference to be used for this sample
-Channel.fromFilePairs(params.reads, size: 1)
+if(!isPaired){
+  Channel.fromFilePairs(params.reads, size: 1)
         .ifEmpty { exit 1, "Readfiles not specified" }
         .into { reads_fastQC; reads_trimgalore }
+} else{
+  Channel.fromFilePairs(params.reads, size: 2)
+        .ifEmpty { exit 1, "Readfiles not specified" }
+        .into { reads_fastQC; reads_trimgalore }
+}
 
 /*
 Unzip genome file
