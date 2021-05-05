@@ -162,7 +162,7 @@ process trimming {
     """
   }else{
     """
-      trim_galore --dont_gzip --paired --retain_unpaired --fastqc ${read_file[0]} ${read_file[1]}
+      trim_galore --dont_gzip --paired --fastqc ${read_file[0]} ${read_file[1]}
     """
   }
 }
