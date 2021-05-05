@@ -170,7 +170,7 @@ process trimming {
 // 2) Create hisat_index
 process hisat2_index {
   input:
-    cpus: 16
+    cpus 16
     file reference_genome from genome_fasta
   output:
     file "${reference_genome.baseName}.*.ht2*" into hisat2_indeces
