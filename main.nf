@@ -151,7 +151,7 @@ process trimming {
 }
 
   output:
-    set id, file("*_trimmed.fq") into ch_trimmed
+    set id, file("*.fq") into ch_trimmed
     file "*_fastqc.{zip,html}" into trimgalore_fastqc_results
     file "*trimming_report.txt" into trimgalore_results
 
@@ -162,7 +162,7 @@ process trimming {
     """
   }else{
     """
-      trim_galore --dont_gzip --paired --retain_unpaired ${read_file[0]} ${read_file[1]}
+      trim_galore --dont_gzip --paired --retain_unpaired --fastqc ${read_file[0]} ${read_file[1]}
     """
   }
 }
