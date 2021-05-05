@@ -299,7 +299,7 @@ process qualimap_rnaseq {
   tag "$id"
   publishDir "$pubDir/QualiMapsRNAseq/", mode: 'copy'
   when:
-  noQualiControl == false || noFC == false
+  noQualiControl == false && noFC == false
   input:
     tuple id, file(bam) from sorted_alignment_files_rnaseq
     file annotation from gtf
