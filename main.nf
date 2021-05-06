@@ -200,7 +200,7 @@ process hisat2_mapping {
                    --met-stderr \
                    --new-summary \
                    --summary-file ${id}_summary.txt --rg-id ${id} --rg SM:${id} \
-                   | samtools view -bS -F 4 -F 8 -F 256 - > ${id}.bam
+                   | samtools view -bS - > ${id}.bam
       """
     } else{
       """
@@ -211,7 +211,7 @@ process hisat2_mapping {
                    --met-stderr \
                    --new-summary \
                    --summary-file ${id}_summary.txt --rg-id ${id} --rg SM:${id} \
-                   | samtools view -bS -F 4 -F 8 -F 256 - > ${id}.bam
+                   | samtools view -bS - > ${id}.bam
       """
     }
 }
