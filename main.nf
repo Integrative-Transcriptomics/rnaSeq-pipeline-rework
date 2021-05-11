@@ -235,6 +235,7 @@ process featureCounts {
     O = ""
     frac = ""
     s = "0"
+    p = ""
     if(fcStrandness == "forward"){
       s = "1"
     } else if(fcStrandness == "reverse"){
@@ -249,8 +250,11 @@ process featureCounts {
     if(fraction){
       frac = "--fraction"
     }
+    if(isPaired){
+      p ="-p"
+    }
     """
-    featureCounts -a $annotation -s $s -t $t -g $g --extraAttributes $extraAttributes -o counts.txt $M $O $frac $bams
+    featureCounts -a $annotation -s $s -t $t -g $g --extraAttributes $extraAttributes -o counts.txt $M $O $frac $p $bams
     """
 }
 
