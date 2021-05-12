@@ -1,8 +1,5 @@
 # rnaSeq-Analysis
 
-==------------------------------------==
-    Personal use RNA pipeline
-    ==------------------------------------==
     Usage:
     The typical command for running the pipeline is as follows:
     nextflow run main.nf --reads  "*.fastq.gz" --reference <.fna.gz> --gff <.gff.gz> -profile conda
