@@ -46,7 +46,7 @@ featureCounts_extra = params.extraAttributes
 rRNA_list = params.rRNAgenes
 
 // The basic input of the Pipeline. based on the Read name, a <base>_reference.info file is locatad, containing the information of the reference to be used for this sample
-  Channel.fromFilePairs(params.bams, size: 1)
+  Channel.fromFilePairs(params.bams, size: -1)
         .ifEmpty { exit 1, "Bamfiles not specified" }
         .into {alignment_files}
 
