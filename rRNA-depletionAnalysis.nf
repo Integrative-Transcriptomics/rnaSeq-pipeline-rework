@@ -100,7 +100,7 @@ process featureCounts {
       p ="-p"
     }
     """
-    featureCounts -a $annotation -s $s -O -M --fraction -t $t -g $g --extraAttributes $extraAttributes --minOverlap 10 --fracOverlap 0.9 $p $bams
+    featureCounts -a $annotation -s $s -O -M --fraction -t $t -g $g --extraAttributes $extraAttributes -o counts.txt --minOverlap 10 --fracOverlap 0.9 $p $bams
     """
 }
 
