@@ -37,6 +37,7 @@ params.extraAttributes = 'gene_name'
 params.pubDir = "Results"
 pubDir = file(params.pubDir)
 gff_file = file(params.gff)
+alignment_files = file(params.bams)
 
 isPaired = params.paired
 fcStrandness = params.featureCountsS
@@ -44,11 +45,6 @@ featureCounts_g = params.g
 featureCounts_t = params.t
 featureCounts_extra = params.extraAttributes
 rRNA_list = params.rRNAgenes
-
-// The basic input of the Pipeline. based on the Read name, a <base>_reference.info file is locatad, containing the information of the reference to be used for this sample
-  Channel.fromFilePairs(params.bams, size: -1)
-        .ifEmpty { exit 1, "Bamfiles not specified" }
-        .into {alignment_files}
 
 
 process unZipGFF{
