@@ -46,7 +46,7 @@ featureCounts_extra = params.extraAttributes
 rRNA_list = params.rRNAgenes
 
 // The basic input of the Pipeline. based on the Read name, a <base>_reference.info file is locatad, containing the information of the reference to be used for this sample
-  Channel.fromFilePairs(params.bams, size: -1, flat: true)
+  Channel.fromFilePairs(params.bams, size: -1)
         .ifEmpty { exit 1, "Bamfiles not specified" }
         .into {alignment_files}
 
@@ -83,7 +83,7 @@ process featureCounts {
     val t from featureCounts_t
     val extraAttributes from featureCounts_extra
     file annotation from gtf
-    file(bams) from alignment_files.collect()
+    tuple id,file(bams) from alignment_files.collect()
     publishDir "$pubDir/rRNADepletion/", mode: 'copy'
   output:
     file("counts.txt") into feature_counts
