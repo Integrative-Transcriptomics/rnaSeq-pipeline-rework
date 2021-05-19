@@ -16,6 +16,7 @@ def helpMessage() {
     Optional arguments:
       --paired                Paired end reads
       --noQuali               Disable quality control
+      --noQualiRNA            Disable quality control RNASeq
       --noCounts              Disable feature counts
       --featureCountsS        FeatureCounts attribute strandedness: unstranded, reverse or forward strandness (default: reverse)
       --g                     FeatureCounts attribute to group features (default: locus_tag)
@@ -36,6 +37,7 @@ if (params.help){
 }
 params.paired = false
 params.noQuali = false
+params.noQualiRNA = false
 params.noCounts = false
 params.featureCountsS = 'reverse'
 params.g = 'locus_tag'
@@ -50,11 +52,13 @@ if(params.fraction && !(params.O || params.M)){
 }
 params.pubDir = "Results"
 pubDir = file(params.pubDir)
+project_dir = projectDir
 genome_file = file(params.reference)
 gff_file = file(params.gff)
 
 isPaired = params.paired
 noQualiControl = params.noQuali
+noQualiControlRNA =params.noQualiRNA
 noFC = params.noCounts
 fcStrandness = params.featureCountsS
 featureCounts_g = params.g
@@ -258,6 +262,8 @@ process featureCounts {
     """
 }
 
+
+
 // samtools sort index
 process samtools {
   input:
@@ -303,7 +309,7 @@ process qualimap_rnaseq {
   tag "$id"
   publishDir "$pubDir/QualiMapsRNAseq/", mode: 'copy'
   when:
-  noQualiControl == false && noFC == false
+  noQualiControl == false && noFC == false && noQualiControlRNA == false
   input:
     tuple id, file(bam) from sorted_alignment_files_rnaseq
     file annotation from gtf
@@ -320,8 +326,6 @@ process qualimap_rnaseq {
 process multiqc {
     publishDir "${pubDir}/MultiQC", mode: 'copy'
 
-    when:
-    noQualiControl == false
     input:
     file (fastqc:'fastqc/*') from fastqc_results.collect().ifEmpty([])
     file ('trimgalore/*') from trimgalore_results.collect().ifEmpty([])
