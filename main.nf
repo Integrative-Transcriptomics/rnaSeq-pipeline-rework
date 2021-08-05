@@ -195,11 +195,19 @@ process hisat2_mapping {
       tuple id, file("*_summary.txt") into alignment_logs
     script:
       index_name = indeces[0].toString() - ~/.\d.ht2l?/
+      s=""
+
       if(!isPaired){
+        if(fcStrandness == "forward"){
+          s = "F"
+        } else if(fcStrandness == "reverse"){
+          s = "R"
+        }
       """
       hisat2 -x $index_name \
                    -U $reads \
                    --no-spliced-alignment \
+                   --rna-stradness $s \
                    -p ${task.cpus} \
                    --met-stderr \
                    --new-summary \
