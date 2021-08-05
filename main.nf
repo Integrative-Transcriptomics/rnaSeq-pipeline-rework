@@ -52,7 +52,6 @@ if(params.fraction && !(params.O || params.M)){
 }
 params.pubDir = "Results"
 pubDir = file(params.pubDir)
-project_dir = projectDir
 genome_file = file(params.reference)
 gff_file = file(params.gff)
 
