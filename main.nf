@@ -206,7 +206,7 @@ process hisat2_mapping {
       hisat2 -x $index_name \
                    -U $reads \
                    --no-spliced-alignment \
-                   --rna-stradness $s \
+                   --rna-strandness $s \
                    -p ${task.cpus} \
                    --met-stderr \
                    --new-summary \
