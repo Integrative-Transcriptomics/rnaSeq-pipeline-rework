@@ -1,4 +1,5 @@
-# rnaSeq-Analysis
+# rnaSeq-Pipeline [![DOI](https://zenodo.org/badge/543497999.svg)](https://zenodo.org/badge/latestdoi/543497999)
+
 
     Usage:
     The typical command for running the pipeline is as follows:
