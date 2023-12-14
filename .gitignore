@@ -1,0 +1,6 @@
+*.bam
+.DS_Store
+BAMS*
+*.gff
+work/*
+.nextflow*
