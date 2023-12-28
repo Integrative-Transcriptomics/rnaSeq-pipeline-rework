@@ -128,7 +128,7 @@ process depletionCalculation{
     input:
     path(featureCounts)
     val g
-    path (list) 
+    path(list) 
 
     output:
     path("rRNA_remaining.csv")
@@ -136,6 +136,25 @@ process depletionCalculation{
     script:
     """
     compute_ratio.py -c $featureCounts -r $list
+    """
+}
+
+process tpmCalculation{
+    conda 'environment.yml'
+    publishDir "./rRNADepletion", mode: 'copy'
+
+    input:
+    path(bamFile)
+    path(gffFile)
+    path(gtfFile)
+
+    output:
+    path '*.results' 
+
+    script:
+    """
+    rsem-prepare-reference --gtf $gtfFile 
+    rsem-calculate-expression -p 8 --bam --estimate-rspd --append-names --output-genome-bam $bamFile $gffFile ./rRNADepletion
     """
 }
 
@@ -154,4 +173,5 @@ workflow {
         | set { result }
 
     ch_depletion_calculation = depletionCalculation(result.txt, featureCounts_g, rRNA_path)
+    //isoform_results = tpmCalculation(alignment_files, ch_gff, ch_gtf)
 }

@@ -9,6 +9,7 @@ from glob import glob
 def main(argv):
     countsfile = ''
     rRNA_genes = ''
+    
     try:
         opts, args = getopt.getopt(argv,"hc:r:",["counts=","rRNAgenes="])
     except getopt.GetoptError:
@@ -21,8 +22,18 @@ def main(argv):
         elif opt in ("-c", "--counts"):
             countsfile = arg
         elif opt in ("-r", "--rRNAgenes"):
-            rRNA_genes = arg
-    rRNA_genes = rRNA_genes.split(',')
+            rRNA_genes_path = arg
+    # read input file
+    with open(rRNA_genes_path) as file:
+        contents = file.read()
+    # split lines
+    rRNA_genes_and_type = contents.split('\n')
+    # change data structure of rRNA_genes
+    rRNA_genes = []
+    # split gene from type and save only the gene 
+    for gene_and_txpe in rRNA_genes_and_type[1:]:
+        rRNA_genes.append(gene_and_txpe.split(",")[0])
+
     count_cols = "file total_count rRNA_count ratio".split()
     counts = []
     counts_df = pd.read_table(countsfile, skiprows=1)

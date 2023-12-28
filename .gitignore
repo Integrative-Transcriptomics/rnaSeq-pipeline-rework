@@ -4,3 +4,4 @@ BAMS*
 *.gff
 work/*
 .nextflow*
+*.gz
