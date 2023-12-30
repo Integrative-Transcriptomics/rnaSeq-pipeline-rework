@@ -153,8 +153,9 @@ process tpmCalculation{
 
     script:
     """
-    rsem-prepare-reference --gtf $gtfFile 
-    rsem-calculate-expression -p 8 --bam --estimate-rspd --append-names --output-genome-bam $bamFile $gffFile ./rRNADepletion
+    rsem-prepare-reference --gtf $gtfFile /Users/sarina/Documents/Bachelorarbeit/rnaSeq-pipeline-rework/GCF_000203835.1_ASM20383v1_genomic.fna GCF_000203835.1_ASM20383v1_genomic
+
+    rsem-calculate-expression -p 8 --bam --estimate-rspd --append-names --output-genome-bam $bamFile GCF_000203835.1_ASM20383v1_genomic ./
     """
 }
 
@@ -172,6 +173,6 @@ workflow {
         }
         | set { result }
 
-    ch_depletion_calculation = depletionCalculation(result.txt, featureCounts_g, rRNA_path)
-    //isoform_results = tpmCalculation(alignment_files, ch_gff, ch_gtf)
+    ch_depletion_calculation = depletionCalculation(result.txt, featureCounts_g, rRNA_path) 
+    //risoform_results = tpmCalculation(alignment_files, ch_gff, ch_gtf)
 }
