@@ -139,27 +139,6 @@ process depletionCalculation{
     """
 }
 
-process tpmCalculation{
-    conda 'environment.yml'
-    publishDir "./rRNADepletion", mode: 'copy'
-
-    input:
-    path(bamFile)
-    path(gffFile)
-    path(gtfFile)
-
-    output:
-    path '*.results' 
-
-    script:
-    """
-    rsem-prepare-reference --gtf $gtfFile /Users/sarina/Documents/Bachelorarbeit/rnaSeq-pipeline-rework/GCF_000203835.1_ASM20383v1_genomic.fna GCF_000203835.1_ASM20383v1_genomic
-
-    rsem-calculate-expression -p 8 --bam --estimate-rspd --append-names --output-genome-bam $bamFile GCF_000203835.1_ASM20383v1_genomic ./
-    """
-}
-
-
 workflow {  
     ch_gff = unZipGFF(gff_file)
     ch_gtf = convertGFFtoGTF(ch_gff)
@@ -173,6 +152,5 @@ workflow {
         }
         | set { result }
 
-    ch_depletion_calculation = depletionCalculation(result.txt, featureCounts_g, rRNA_path) 
-    //risoform_results = tpmCalculation(alignment_files, ch_gff, ch_gtf)
+    ch_depletion_calculation = depletionCalculation(result.txt, featureCounts_g, rRNA_path)
 }

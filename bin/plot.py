@@ -186,6 +186,7 @@ def readcounts_histogram(counts_txt):
             x_values.append(ln(float(key)))
             y_values.append(value)
         
+        #fig.add_trace(go.Histogram(x=x_values, name=counts_data[0][number_of_sample], marker=dict(color='rgba(0,0,0,0)', line=dict(color='black', width=2))))
         fig.add_trace(go.Histogram(x=x_values, name=counts_data[0][number_of_sample]))
         number_of_sample += 1
     
@@ -194,6 +195,7 @@ def readcounts_histogram(counts_txt):
         title='Histogram of the distribution of read counts per sample (output of featureCounts)',
         xaxis_title="Read frequency per Gene (logarithmic scaling)",
         yaxis_title="Frequency",
+        bargap=0,
         showlegend=True,
         updatemenus=[
             dict(type="buttons",
@@ -206,7 +208,7 @@ def readcounts_histogram(counts_txt):
                          args=[{"visible": "legendonly"}])
         ]
     )])
-    fig.update_traces(opacity=0.5)
+    fig.update_traces(opacity=0.25)
     
     with open("all_plots.html", "a") as plot_file:
         plot_file.write(fig.to_html(full_html=False, include_plotlyjs="cdn"))

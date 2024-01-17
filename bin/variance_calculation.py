@@ -7,6 +7,12 @@ import numpy as np
 import sys, getopt
 from glob import glob
 
+""" 
+command for execution:
+python3 variance_calculation.py -genesf /Users/sarina/Documents/Bachelorarbeit/rnaSeq-pipeline-rework/rRNA_genes_type.txt 
+-fcf /Users/sarina/Documents/Bachelorarbeit/rnaSeq-pipeline-rework/rRNADepletion/counts.txt
+"""
+
 # calculates the empirical variance
 def calculate_empirical_variance(rRNA_genes_type, counts_txt):
     
@@ -31,41 +37,59 @@ def calculate_empirical_variance(rRNA_genes_type, counts_txt):
     not_rRNA_genes = not_rRNA_genes[1:]
     mean_values = []
 
-    # 1) Caclulate mean value
-    for gene in counts_data[1:]:
-        sum = 0
-        number_of_sanples = len(gene[7:])
-        for value in gene[7:]:
-           sum += float(value) 
-        mean_values.append(sum/number_of_sanples)
+    number_of_genes = len(counts_data)
+    number_of_samples = len(counts_data[0][7:])
+    # print(number_of_genes)
+    # print(number_of_samples)
     
+    variance_calculated_genes = []
+    
+    # 1) Caclulate mean value
+    for i in range(1, number_of_genes):
+        sum = 0
+        for value in counts_data[i][7:]:
+            sum += float(value)
+            
+        mean = sum/number_of_samples
+        
+        # Limit for minimum expression rate: 10
+        if mean > 10:
+            mean_values.append(mean)
+            variance_calculated_genes.append(counts_data[i][0])     # When the mean expression rate is above 10 save it to the mean values
+                
     empirical_variance = []
     count = 0
-    # calculate variance
-    for gene in counts_data[1:]:
+    
+    # 2) Calculate variance
+    for i in range(1, number_of_genes):
         sum = 0
-        number_of_sanples = len(gene[7:])
-        for value in gene[7:]:
-            sum += (float(value) - mean_values[0]) ** 2
-            
-        empirical_variance.append(sum/(number_of_sanples-1))    
-        count += 1
+        if counts_data[i][0] in variance_calculated_genes:
+            for value in counts_data[i][7:]:
+                sum += (float(value) - mean_values[count]) ** 2
+                   
+            empirical_variance.append(sum/(number_of_samples-1))
+            count += 1 
+    
+    # print(len(variance_calculated_genes))
+   
+    results = [[x, y, z] for x,y,z in zip(mean_values, empirical_variance, variance_calculated_genes)]
+    
+    # Sort resulst in two different ways and find subset
+    # 1) Expression rate from highest to lowest (mean value)
+    sorted_results_mean_expression = sorted(results, key=lambda x: (x[0]), reverse=True)
+    
+    # 2) Variance from lowest to highest (empirical variance)
+    sorted_results_variance = sorted(results, key=lambda x: (x[1]))
+    
+    # Limit to find intersection: 2200 (in this case only two elements are the same) 
+    intersection = [element for element in sorted_results_mean_expression[:2200] if element in sorted_results_variance[:2200]]
+    
+    # print(intersection)
     
     
-    difference_between_varaiance_mean = 0   
-    
-    results = [[x, y, z] for x,y,z in zip(mean_values, empirical_variance, not_rRNA_genes)]
-    
-    for result in results:
-        difference_between_varaiance_mean = abs(result[1] - result[0])
-        result.append(difference_between_varaiance_mean)
-    
-    sorted_results = sorted(results, key=lambda x: x[-1])
-    print(sorted_results[-10:])
-
 
 def main():
-        # Create the argument parser
+    # Create the argument parser
     parser = argparse.ArgumentParser(description="An example script with command-line arguments.")
 
     # Add command-line arguments
@@ -81,8 +105,3 @@ def main():
     calculate_empirical_variance(rRNA_genes, feature_counts)
     
 main()
-
-""" 
-command for execution:
-
-"""
