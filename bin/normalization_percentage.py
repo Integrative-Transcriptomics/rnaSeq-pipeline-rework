@@ -57,4 +57,4 @@ def main():
     
     normalization_percentage(feature_counts_file)
 
-main()
+#main()

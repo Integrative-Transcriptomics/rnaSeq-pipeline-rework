@@ -4,6 +4,7 @@ import argparse
 import plotly.graph_objects as go
 from numpy import log as ln
 import numpy as np
+import math
 import sys, getopt
 from glob import glob
 
@@ -58,31 +59,47 @@ def calculate_empirical_variance(rRNA_genes_type, counts_txt):
             variance_calculated_genes.append(counts_data[i][0])     # When the mean expression rate is above 10 save it to the mean values
                 
     empirical_variance = []
+    standard_deviation = []
     count = 0
     
-    # 2) Calculate variance
+    # 2) Calculate variance and standard deviation
     for i in range(1, number_of_genes):
         sum = 0
+        variance = 0
         if counts_data[i][0] in variance_calculated_genes:
             for value in counts_data[i][7:]:
                 sum += (float(value) - mean_values[count]) ** 2
-                   
-            empirical_variance.append(sum/(number_of_samples-1))
+            
+            variance = sum/(number_of_samples-1)
+            empirical_variance.append(variance)
+            
+            standard_deviation.append(math.sqrt(variance))
             count += 1 
+    
+    coefficient_of_variation = []        
+    # 3) Calculate coefficient of variation
+    for std, mean in zip(standard_deviation, mean_values):
+        coefficient_of_variation.append(std/mean)
     
     # print(len(variance_calculated_genes))
    
-    results = [[x, y, z] for x,y,z in zip(mean_values, empirical_variance, variance_calculated_genes)]
+    results = [[a,b,c,d,e] for a,b,c,d,e in zip(mean_values, empirical_variance, standard_deviation, coefficient_of_variation, variance_calculated_genes)]
     
     # Sort resulst in two different ways and find subset
     # 1) Expression rate from highest to lowest (mean value)
     sorted_results_mean_expression = sorted(results, key=lambda x: (x[0]), reverse=True)
+    first_100_genes = sorted_results_mean_expression[:100]
     
     # 2) Variance from lowest to highest (empirical variance)
-    sorted_results_variance = sorted(results, key=lambda x: (x[1]))
+    # sorted_results_variance = sorted(results, key=lambda x: (x[1]))
+    sorted_first_100_genes_after_variance = sorted(first_100_genes, key=lambda x: (x[1]))
     
     # Limit to find intersection: 2200 (in this case only two elements are the same) 
-    intersection = [element for element in sorted_results_mean_expression[:2200] if element in sorted_results_variance[:2200]]
+    #intersection = [element for element in sorted_results_mean_expression[:2200] if element in sorted_results_variance[:2200]]
+    
+    # Ouput of the genes with the smallest variance but high expression
+    print(sorted_first_100_genes_after_variance[:10])
+    return(sorted_first_100_genes_after_variance[:10])
     
     # print(intersection)
     

@@ -18,4 +18,5 @@ dependencies:
   - bioconda::rsem #
   - bioconda::hisat2
   - bioconda::gffread
-  - conda-forge::pandas
+  - bioconda::bedtools
+  - conda-forge::pandas  

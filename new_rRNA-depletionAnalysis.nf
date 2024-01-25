@@ -139,6 +139,26 @@ process depletionCalculation{
     """
 }
 
+process genomecov {
+    conda 'environment.yml'
+    publishDir "./rRNADepletion", mode: 'copy'
+
+    input:
+    each path(bams)
+    path(counts)
+
+    output:
+    path("*.bedgraph")
+
+    script:
+    """
+    filename=\$(basename "$bams")
+    filename_without_extension="\${filename%.*.*}"
+    bedtools genomecov -bga -ibam $bams > \$filename_without_extension.bedgraph
+    """
+ 
+}
+
 workflow {  
     ch_gff = unZipGFF(gff_file)
     ch_gtf = convertGFFtoGTF(ch_gff)
@@ -153,4 +173,6 @@ workflow {
         | set { result }
 
     ch_depletion_calculation = depletionCalculation(result.txt, featureCounts_g, rRNA_path)
+
+    ch_genomecov = genomecov(alignment_files.collect(), result.summary)
 }

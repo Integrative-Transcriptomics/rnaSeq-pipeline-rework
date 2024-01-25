@@ -2,7 +2,7 @@ import argparse
 
 """
     command for execution:
-    python3 tpm_calculation.py -fcf /Users/sarina/Documents/Bachelorarbeit/rnaSeq-pipeline-rework/rRNADepletion/counts.txt
+    python3 tpm_calculation.py -fcf /Users/sarina/Bachelorarbeit/rnaSeq-pipeline-rework/rRNADepletion/counts.txt
 """
 
 # Calculates TPM Value for each gene
@@ -59,9 +59,8 @@ def tpm_calculation(feature_counts_file):
             
         tpm_values.append(tpm_genes)
         
-    tpm_values_transposed = [[row[i] for row in tpm_values] for i in range(len(tpm_values[0]))]
-    
-
+    tpm_values_transposed = [[row[i] for row in tpm_values] for i in range(len(tpm_values[0]))] #[[sample1, sample2, ....], [sample1, sample2, ...], ...]
+  
     return tpm_values_transposed
 
 def main():
@@ -78,4 +77,4 @@ def main():
     
     tpm_calculation(feature_counts_file)
 
-main()
+#main()
