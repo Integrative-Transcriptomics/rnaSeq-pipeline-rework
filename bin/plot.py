@@ -38,7 +38,7 @@ def bar_chart_procent(rRNA_remaining):
     
 
 # Creates a bar chart for each sample, indicating how much 5S, 16S and 23S rRNA is still present.
-# tpm normalization
+# tpm normalization and normalization in percent
 def bar_chart_different_rRNA_tpm(rRNA_genes_type, counts_txt):
     
     genes_data = [] #[[gene_id, type], [gene_id, type], ...]
