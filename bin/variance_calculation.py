@@ -39,9 +39,7 @@ def calculate_empirical_variance(rRNA_genes_type, counts_txt):
     mean_values = []
 
     number_of_genes = len(counts_data)
-    number_of_samples = len(counts_data[0][7:])
-    # print(number_of_genes)
-    # print(number_of_samples)
+    number_of_samples = len(counts_data[0][7:])#
     
     variance_calculated_genes = []
     
@@ -51,7 +49,7 @@ def calculate_empirical_variance(rRNA_genes_type, counts_txt):
         for value in counts_data[i][7:]:
             sum += float(value)
             
-        mean = sum/number_of_samples
+        mean = round(sum/number_of_samples, 2)
         
         # Limit for minimum expression rate: 10
         if mean > 10:
@@ -70,16 +68,16 @@ def calculate_empirical_variance(rRNA_genes_type, counts_txt):
             for value in counts_data[i][7:]:
                 sum += (float(value) - mean_values[count]) ** 2
             
-            variance = sum/(number_of_samples-1)
+            variance = round(sum/(number_of_samples-1), 2)
             empirical_variance.append(variance)
             
-            standard_deviation.append(math.sqrt(variance))
+            standard_deviation.append(round(math.sqrt(variance),2))
             count += 1 
     
     coefficient_of_variation = []        
     # 3) Calculate coefficient of variation
     for std, mean in zip(standard_deviation, mean_values):
-        coefficient_of_variation.append(std/mean)
+        coefficient_of_variation.append(round(std/mean, 2))
     
     # print(len(variance_calculated_genes))
    
@@ -98,7 +96,7 @@ def calculate_empirical_variance(rRNA_genes_type, counts_txt):
     #intersection = [element for element in sorted_results_mean_expression[:2200] if element in sorted_results_variance[:2200]]
     
     # Ouput of the genes with the smallest variance but high expression
-    print(sorted_first_100_genes_after_variance[:10])
+    #print(sorted_first_100_genes_after_variance[:10])
     return(sorted_first_100_genes_after_variance[:10])
     
     # print(intersection)
@@ -121,4 +119,4 @@ def main():
     
     calculate_empirical_variance(rRNA_genes, feature_counts)
     
-main()
+#main()

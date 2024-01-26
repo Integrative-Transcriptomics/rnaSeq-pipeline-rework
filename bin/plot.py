@@ -6,6 +6,9 @@ from plotly.subplots import make_subplots
 import numpy as np
 import tpm_calculation as tpm 
 import normalization_percentage as norm_percent
+import variance_calculation as vc
+import gff_parser as gff_parser
+
 
 # creates a bar chart, with all samples and the given rRNA percentage
 def bar_chart_procent(rRNA_remaining):
@@ -265,6 +268,46 @@ def readcounts_histogram(counts_txt):
     fig.write_html('read_counts_histogram.html', auto_open=False)
 
 
+def create_table(rRNA_genes_type, counts_txt, gff_file):
+    #["mean_values" , "empirical_variance", "standard_deviation", "coefficient_of_variation", "gene"]
+    header_values = ['Mean', 'Empirical variance', 'Standard deviation', 'Coefficient of variation', 'Gene ID', 'Product']
+    genes = []
+    gff_content = gff_parser.gff_file_parser(gff_file)
+    
+    top_10_results = vc.calculate_empirical_variance(rRNA_genes_type, counts_txt)
+    
+    # Extract all genes from the top results
+    for result in top_10_results:
+        genes.append(result[-1])
+        
+    for line in gff_content:
+        product = None
+        if "locus_tag" in line[-1]:
+            gene_id = line[-1]["locus_tag"]
+            if gene_id in genes:
+                if "product" in line[-1]:
+                    product = line[-1]["product"]
+                    for gene in top_10_results:
+                        if gene[-1] == gene_id:
+                            gene.append(product)
+        
+    # Swap columns with rows
+    cells_values = [[row[i] for row in top_10_results] for i in range(len(top_10_results[0]))]
+        
+    
+    fig = go.Figure(data=[go.Table(header=dict(values=header_values, align='left'),
+                 cells=dict(values=cells_values, align='left'))
+                     ])
+        
+    fig.update_layout(
+        title = "Top 10 genes with highest expression and low variance"
+    )
+    
+    with open("all_plots.html", "a") as plot_file:
+        plot_file.write(fig.to_html(full_html=False, include_plotlyjs="cdn"))
+    
+    fig.write_html('genes_barchart.html', auto_open=True)
+
 # Calls plot functions 
 def main():
     
@@ -275,6 +318,7 @@ def main():
     parser.add_argument("-if", "--rRNA_remaining", help="Path to the remaining rRNA file", required=True)
     parser.add_argument("-genesf", "--rRNA_genes", help="Path to the file containing all rRNA genes", required=True)
     parser.add_argument("-fcf", "--feature_counts_file", help="Output file counts.txt of featureCounts", required=True)
+    parser.add_argument("-gff", "--gff_file", help="Gff file input.", required=True)
 
     # Parse the command-line arguments
     args = parser.parse_args()
@@ -282,12 +326,13 @@ def main():
     rRNA_remaining = args.rRNA_remaining
     rRNA_genes = args.rRNA_genes
     feature_counts = args.feature_counts_file
+    gff_file = args.gff_file
     
     open("all_plots.html", "w").close()
     
     bar_chart_procent(rRNA_remaining)
     bar_chart_different_rRNA_tpm(rRNA_genes, feature_counts)
     readcounts_histogram(feature_counts)
-     
+    create_table(rRNA_genes, feature_counts, gff_file)
     
 main()
