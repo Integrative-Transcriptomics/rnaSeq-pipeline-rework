@@ -5,3 +5,5 @@ BAMS*
 work/*
 .nextflow*
 *.gz
+*.html
+*.bedgraph
