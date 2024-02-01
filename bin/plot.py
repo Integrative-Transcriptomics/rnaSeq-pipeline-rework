@@ -8,6 +8,7 @@ import tpm_calculation as tpm
 import normalization_percentage as norm_percent
 import variance_calculation as vc
 import gff_parser as gff_parser
+import random
 
 
 # creates a bar chart, with all samples and the given rRNA percentage
@@ -37,12 +38,12 @@ def bar_chart_procent(rRNA_remaining):
     with open("all_plots.html", "a") as plot_file:
         plot_file.write(fig.to_html(full_html=False, include_plotlyjs="cdn"))
         
-    fig.write_html('ratio_plot.html', auto_open=True)
+    fig.write_html('ratio_plot.html', auto_open=False)
     
 
 # Creates a bar chart for each sample, indicating how much 5S, 16S and 23S rRNA is still present.
 # tpm normalization and normalization in percent
-def bar_chart_different_rRNA_tpm(rRNA_genes_type, counts_txt):
+def bar_chart_different_rRNA(rRNA_genes_type, counts_txt):
     
     genes_data = [] #[[gene_id, type], [gene_id, type], ...]
     rRNA_genes = [] #[gene_id, gene_id, ...]
@@ -113,10 +114,9 @@ def bar_chart_different_rRNA_tpm(rRNA_genes_type, counts_txt):
     
     for count in rRNA_data_percent[1:]:
         for i in range(0, number_of_arrays):
-            #number_percent = np.log10(float(count[i+7]))
             number_percent = float(count[i+7])
             data_dict_percent[f"{rRNA_data_tpm[0][i + 7]}"].append(number_percent)
-    
+            
     # Add type to data dict
     data_dict_tpm["type"] = type  
     data_dict_percent["type"] = type
@@ -125,28 +125,31 @@ def bar_chart_different_rRNA_tpm(rRNA_genes_type, counts_txt):
     data_tpm = pd.DataFrame(data_dict_tpm)
     data_percent = pd.DataFrame(data_dict_percent)
     
+    data_sum_rRNA_genes = calculate_bar_plot_total_percent_rRNA(data_dict_percent, rRNA_data_percent[0][7:])
+    
     #create dict with unique color values
-    color_dict={}
-    x=0
-    for t in type:
-        if t not in color_dict:
-            color_dict[t]=x
-            x += 1
-            
+    color_dict={
+        "5S": "darkblue",
+        "16S": "yellow",
+        "23S": "hotpink"
+    }
+
     #create color list
     color_list=[]
     for t in type:
         color_list.append(color_dict[t])
     
     # Create Figure
-    fig = make_subplots(rows=1, cols=2)
+    fig = make_subplots(rows=2, cols=2,
+                        specs=[[{}, {}], [{'colspan': 2}, None]],
+                        subplot_titles=("Normalization with TPM", "Normalization in percent", "Sum of all percent values, per rRNA type"))
     
     for column in data_tpm.columns[1:-1]:
         fig.add_trace(go.Bar(
-            x=data_tpm["genes"],
-            y= data_tpm[column],
-            name=column,
-            marker_color=color_list,
+            x =data_tpm["genes"],
+            y = data_tpm[column],
+            name = column,
+            marker_color = color_list,
             legendgrouptitle_text = "Normalization with TPM:",
             legendgroup = 'a',
         ),
@@ -155,26 +158,54 @@ def bar_chart_different_rRNA_tpm(rRNA_genes_type, counts_txt):
     
     for column in data_percent.columns[1:-1]:
         fig.add_trace(go.Bar(
-            x=data_percent["genes"],
-            y= data_percent[column],
-            name=column,
-            marker_color=color_list,
+            x = data_percent["genes"],
+            y = data_percent[column],
+            name = column,
+            marker_color = color_list,
             legendgrouptitle_text = "Normalization in percent:",
             legendgroup = 'b',
         ),
         row=1,
         col=2)
+    
+    color_sum_plot = ['darkblue', 'yellow', 'hotpink']
+    
+    for column in data_sum_rRNA_genes.columns[:-1]:
+        fig.add_trace(go.Bar(
+            x = data_sum_rRNA_genes["type"],
+            y = data_sum_rRNA_genes[column],
+            name = column,
+            marker_color = color_sum_plot,
+            legendgrouptitle_text = "Sum of all percent values",
+            legendgroup = 'c',
+            ),
+            row=2, col=1) 
+        
+    # Add color legend
+    for type, color_type in color_dict.items():
+        fig.add_trace(go.Scatter(
+            x=[None],
+            y=[None],
+            mode='markers',
+            marker=dict(color=color_dict[type], opacity=1),
+            name=type,
+            legendgrouptitle_text = "Color Overview",
+            hoverinfo='none',
+            legendgroup = 'd',
+        ),
+)
+        
         
         
     fig.update_layout(
         barmode='group',
-        title='Overview over genes and their type',
+        title='5S, 16S and 23S Expression in the different samples',
         xaxis1_title="Genes",
         yaxis1_title="Expression number (logarithmic scaling)",
         xaxis2_title="Genes",
         yaxis2_title="Expression number",
         autotypenumbers='convert types',
-        legend=dict(groupclick="toggleitem"),
+        legend=dict(groupclick='toggleitem'),
         updatemenus=[
             dict(type="buttons",
                 buttons=[
@@ -187,68 +218,180 @@ def bar_chart_different_rRNA_tpm(rRNA_genes_type, counts_txt):
                 ])],    
     )
     
+    
     with open("all_plots.html", "a") as plot_file:
         plot_file.write(fig.to_html(full_html=False, include_plotlyjs="cdn"))
         
-    fig.write_html('genes_barchart.html', auto_open=True)
+    fig.write_html('genes_barchart.html', auto_open=False)
+    
+    
+    
+
+# Bar chart showing the percentage of reads that are 5S, 16S or 23S rRNA
+def calculate_bar_plot_total_percent_rRNA(data_dict_percent, sample_names):
+
+    type_list = data_dict_percent['type']    
+    percent_data = [] # [[sample_name, [(type, percent), (type, percent), ...]], [sample_name, [(type, percent), (type, percent), ...]], ]
+    
+    for sample_name in sample_names:
+        sample_to_add = [sample_name]
+        sample_to_add.append(list(zip(type_list, data_dict_percent[sample_name])))
+        percent_data.append(sample_to_add)
+    
+    percent_sum_data_dict = {} # [[sample_name, sum 5S genes, sum 16S genes, sum 23S genes], [sample_name, sum 5S genes, sum 16S genes, sum 23S genes]]
+    
+    for sample in percent_data:
+        fiveS_sum = 0
+        sixteen_sum = 0
+        twentythree_sum = 0
+        sample_name = sample[0]
+        sample_data = []
+        for data in sample[1]:
+            type = data[0]
+            percent_value = data[1]
+            if type == "5S":
+                fiveS_sum += percent_value
+            if type == "16S":
+                sixteen_sum += percent_value
+            if type == "23S":
+                twentythree_sum += percent_value
+                
+        sample_data.append(fiveS_sum)
+        sample_data.append(sixteen_sum)
+        sample_data.append(twentythree_sum)
+
+        percent_sum_data_dict[sample_name] = sample_data
+
+    percent_sum_data_dict['type'] = ["5S", "16S", "23S"]
+    
+    return pd.DataFrame(percent_sum_data_dict)    
+    
 
 
 # Histogramm for readcounts
-def readcounts_histogram(counts_txt):
+def readcounts_histogram(counts_txt, rRNA_genes_type):
     
     counts_data = []
+    counts_data_without_rRNA = []
+    rRNA_genes = []
     counts_data_transformed = []
-    dict_data = {}
+    counts_data_transformed_without_rRNA = []
+    dict_data1 = {}
+    dict_data2 = {}
     
+    # Add all rRNA genes from file to rRNA_genes list
+    with open(rRNA_genes_type) as file:
+        for line in file:
+            if not line.startswith('gene_id'):
+                line_list = line.strip().split(",")
+                rRNA_genes.append(line_list[0])
+    
+    # Create data with and without rRNA
     with open(counts_txt) as file:
         for line in file:
             if not(line.startswith("#")):
-                counts_data.append(line.strip().split("\t")[7:])
+                line_list = line.strip().split("\t")
+                new_list = [line_list[0]] + line_list[7:]
+                if line.startswith("Geneid"):
+                    counts_data.append(new_list)
+                    counts_data_without_rRNA.append(new_list)
+                elif line_list[0] in rRNA_genes:
+                    counts_data_without_rRNA.append(new_list)
+                else:
+                    counts_data.append(new_list)
     
-    number_of_samples = len(counts_data[0])
+    number_of_samples = len(counts_data[0][1:])
     number_of_genes = len(counts_data)
     
-    for i in range(0, number_of_samples):
+    # Add Pseudocount for each entry
+    for i in range(1, number_of_samples + 1):
         intermediate_step = []
-        
-        for j in range(1, number_of_genes):
+        intermediate_step_without_rRNA = []
+        for j in range(1, number_of_genes): 
             counts = float(counts_data[j][i])
-            if counts == 0: # Pseudocount
-                intermediate_step.append(counts + 1)
-            else:
-                intermediate_step.append(counts)
-
-        counts_data_transformed.append(intermediate_step)
-        
-    fig = go.Figure()
-    
-    number_of_sample = 0
-    
-    for sample in counts_data_transformed:
-        for count in sample:
-            if str(count) in dict_data:
-                dict_data[str(count)] += 1
-            else:
-                dict_data[str(count)] = 1
+            intermediate_step.append(counts+1)
             
-        x_values = []
-        y_values = []
+        for j in range(1, len(counts_data_without_rRNA)):
+            counts = float(counts_data_without_rRNA[j][i])
+            intermediate_step_without_rRNA.append(counts+1)
+            
+        counts_data_transformed.append(intermediate_step)
+        counts_data_transformed_without_rRNA.append(intermediate_step_without_rRNA)
+            
+    fig = make_subplots(rows = 2,
+                        cols = 1,
+                        shared_xaxes=True,
+                        shared_yaxes=True,
+                        vertical_spacing = 0,
+                        subplot_titles=("Upper plot with rRNA genes, lower plot without rRNA genes", None)
+                        )
     
-        for key, value in dict_data.items():
-            x_values.append(np.log10(float(key)))
-            y_values.append(value)
+    all_colors = ["#{:06x}".format(i) for i in range(0xFFFFFF + 1)]  # Liste aller möglichen Farben
+    random_colors = random.sample(all_colors, number_of_samples) 
+    
+    max_value_for_y_axis = 0
+    # Iterate over each sample
+    for i in range(0, number_of_samples):
+        # count how often read count appears for all genes
+        for count in counts_data_transformed[i]:
+            if str(count) in dict_data1:
+                dict_data1[str(count)] += 1
+            else:
+                dict_data1[str(count)] = 1
+                
+        for count in counts_data_transformed_without_rRNA[i]:
+            # count how ofen read count appears only for rRNA genes
+            if str(count) in dict_data2:
+                dict_data2[str(count)] += 1
+            else:
+                dict_data2[str(count)] = 1
+
+        x_values_rRNA = []
+        y_values_rRNA = []
+    
+        x_values_normal = []
+        y_values_normal = []
+    
+        for key, value in dict_data1.items():
+            x_values_normal.append(np.log10(float(key)))
+            y_values_normal.append(value)
+    
+        for key, value in dict_data2.items():
+            x_values_rRNA.append(np.log10(float(key)))
+            y_values_rRNA.append(value)
         
-        #fig.add_trace(go.Histogram(x=x_values, name=counts_data[0][number_of_sample], marker=dict(color='rgba(0,0,0,0)', line=dict(color='black', width=2))))
-        fig.add_trace(go.Histogram(x=x_values, name=counts_data[0][number_of_sample]))
-        number_of_sample += 1
+        curent_max_value = max(y_values_normal)
+        if curent_max_value > max_value_for_y_axis:
+            max_value_for_y_axis = curent_max_value
+
+        fig.add_trace(go.Histogram(x=x_values_normal, name=counts_data[0][i+1], 
+                                   legendgroup ='a', 
+                                   legendgrouptitle_text = "Samples with rRNA genes",
+                                   marker_color=random_colors[i],
+                                   xbins=dict(size=0.09)
+                                   ),
+                      row=1, col=1)
+        fig.add_trace(go.Histogram(x=x_values_rRNA, y=y_values_rRNA, name=counts_data_without_rRNA[0][i+1],
+                                   legendgroup='b',
+                                   legendgrouptitle_text = "Samples without rRNA genes",
+                                   marker_color=random_colors[i],
+                                   xbins=dict(size=0.09)
+                                   ),
+                      row=2, col=1)
     
+    #fig.update_yaxes1(range=[0,90])
     fig.update_layout(
         barmode='overlay',
-        title='Histogram of the distribution of read counts per sample (output of featureCounts)',
-        xaxis_title="Read frequency per Gene (logarithmic scaling)",
-        yaxis_title="Frequency",
+        title='Histogram of the distribution of read counts per sample',
+        yaxis1_title="Frequency",
+        yaxis2_title="Frequency",
+        #yaxis2=dict(autorange='reversed', range=[0,90]),
+        yaxis1_range=[0,90],
+        yaxis2_range=[0,90],
+        #yaxis2_autorange='reversed',
         bargap=0,
         showlegend=True,
+        legend=dict(groupclick='toggleitem'),
         updatemenus=[
             dict(type="buttons",
                 buttons=[
@@ -258,14 +401,16 @@ def readcounts_histogram(counts_txt):
                     dict(label="Select none",
                          method="restyle",
                          args=[{"visible": "legendonly"}])
-        ]
-    )])
+        ])])
     fig.update_traces(opacity=0.25)
+    fig.update_xaxes(title_text="Read frequency per Gene (logarithmic scaling)", row=2, col=1)
+
+    
     
     with open("all_plots.html", "a") as plot_file:
         plot_file.write(fig.to_html(full_html=False, include_plotlyjs="cdn"))
         
-    fig.write_html('read_counts_histogram.html', auto_open=False)
+    fig.write_html('read_counts_histogram.html', auto_open=True)
 
 
 def create_table(rRNA_genes_type, counts_txt, gff_file):
@@ -306,7 +451,7 @@ def create_table(rRNA_genes_type, counts_txt, gff_file):
     with open("all_plots.html", "a") as plot_file:
         plot_file.write(fig.to_html(full_html=False, include_plotlyjs="cdn"))
     
-    fig.write_html('genes_barchart.html', auto_open=True)
+    fig.write_html('table_highest_expression_low_variance.html', auto_open=False)
 
 # Calls plot functions 
 def main():
@@ -331,8 +476,8 @@ def main():
     open("all_plots.html", "w").close()
     
     bar_chart_procent(rRNA_remaining)
-    bar_chart_different_rRNA_tpm(rRNA_genes, feature_counts)
-    readcounts_histogram(feature_counts)
+    bar_chart_different_rRNA(rRNA_genes, feature_counts)
+    readcounts_histogram(feature_counts, rRNA_genes)
     create_table(rRNA_genes, feature_counts, gff_file)
     
 main()
