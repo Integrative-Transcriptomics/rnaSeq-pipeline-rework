@@ -7,3 +7,4 @@ work/*
 *.gz
 *.html
 *.bedgraph
+/.*html
