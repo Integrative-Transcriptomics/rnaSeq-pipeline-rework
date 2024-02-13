@@ -33,7 +33,16 @@ def bar_chart_procent(rRNA_remaining):
     
     data = pd.DataFrame(data_dict)
         
-    fig = px.bar(data, x='Ratio', y='Samples')
+    fig = px.bar(data, x='Ratio', y='Samples', color_discrete_sequence=['darkgrey']*len(data))
+    
+    fig.update_layout(
+        title='Percentage of the number of rRNA reads in the individual samples',
+        xaxis_title="Number of reads in percent",
+        yaxis_title="Individual samples",
+        yaxis=dict(tickfont=dict(size=12),),
+        height= 600,
+        width = 1400
+    )
     
     with open("all_plots.html", "a") as plot_file:
         plot_file.write(fig.to_html(full_html=False, include_plotlyjs="cdn"))
@@ -192,6 +201,7 @@ def bar_chart_different_rRNA(rRNA_genes_type, counts_txt):
             legendgrouptitle_text = "Color Overview",
             hoverinfo='none',
             legendgroup = 'd',
+            legendrank=1,
         ),
 )
         
@@ -215,7 +225,8 @@ def bar_chart_different_rRNA(rRNA_genes_type, counts_txt):
                     dict(label="Select none",
                          method="restyle",
                          args=[{"visible": "legendonly"}])
-                ])],    
+                ])],  
+        width=1400,  
     )
     
     
@@ -225,8 +236,6 @@ def bar_chart_different_rRNA(rRNA_genes_type, counts_txt):
     fig.write_html('genes_barchart.html', auto_open=False)
     
     
-    
-
 # Bar chart showing the percentage of reads that are 5S, 16S or 23S rRNA
 def calculate_bar_plot_total_percent_rRNA(data_dict_percent, sample_names):
 
@@ -266,7 +275,6 @@ def calculate_bar_plot_total_percent_rRNA(data_dict_percent, sample_names):
     
     return pd.DataFrame(percent_sum_data_dict)    
     
-
 
 # Histogramm for readcounts
 def readcounts_histogram(counts_txt, rRNA_genes_type):
@@ -323,7 +331,7 @@ def readcounts_histogram(counts_txt, rRNA_genes_type):
                         shared_xaxes=True,
                         shared_yaxes=True,
                         vertical_spacing = 0,
-                        subplot_titles=("Upper plot with rRNA genes, lower plot without rRNA genes", None)
+                        subplot_titles=("Upper plot without rRNA genes, lower plot only with rRNA genes", None)
                         )
     
     all_colors = ["#{:06x}".format(i) for i in range(0xFFFFFF + 1)]  # Liste aller möglichen Farben
@@ -366,14 +374,14 @@ def readcounts_histogram(counts_txt, rRNA_genes_type):
 
         fig.add_trace(go.Histogram(x=x_values_normal, name=counts_data[0][i+1], 
                                    legendgroup ='a', 
-                                   legendgrouptitle_text = "Samples with rRNA genes",
+                                   legendgrouptitle_text = "Samples without rRNA genes",
                                    marker_color=random_colors[i],
                                    xbins=dict(size=0.09)
                                    ),
                       row=1, col=1)
         fig.add_trace(go.Histogram(x=x_values_rRNA, y=y_values_rRNA, name=counts_data_without_rRNA[0][i+1],
                                    legendgroup='b',
-                                   legendgrouptitle_text = "Samples without rRNA genes",
+                                   legendgrouptitle_text = "Samples with only rRNA genes",
                                    marker_color=random_colors[i],
                                    xbins=dict(size=0.09)
                                    ),
@@ -386,8 +394,8 @@ def readcounts_histogram(counts_txt, rRNA_genes_type):
         yaxis1_title="Frequency",
         yaxis2_title="Frequency",
         #yaxis2=dict(autorange='reversed', range=[0,90]),
-        yaxis1_range=[0,90],
-        yaxis2_range=[0,90],
+        yaxis1_range=[0,350],
+        yaxis2_range=[0,350],
         #yaxis2_autorange='reversed',
         bargap=0,
         showlegend=True,
@@ -401,7 +409,8 @@ def readcounts_histogram(counts_txt, rRNA_genes_type):
                     dict(label="Select none",
                          method="restyle",
                          args=[{"visible": "legendonly"}])
-        ])])
+        ])],
+        width=1400)
     fig.update_traces(opacity=0.25)
     fig.update_xaxes(title_text="Read frequency per Gene (logarithmic scaling)", row=2, col=1)
 
@@ -410,7 +419,7 @@ def readcounts_histogram(counts_txt, rRNA_genes_type):
     with open("all_plots.html", "a") as plot_file:
         plot_file.write(fig.to_html(full_html=False, include_plotlyjs="cdn"))
         
-    fig.write_html('read_counts_histogram.html', auto_open=True)
+    fig.write_html('read_counts_histogram.html', auto_open=False)
 
 
 def create_table(rRNA_genes_type, counts_txt, gff_file):
@@ -445,7 +454,8 @@ def create_table(rRNA_genes_type, counts_txt, gff_file):
                      ])
         
     fig.update_layout(
-        title = "Top 10 genes with highest expression and low variance"
+        title = "Top 10 genes with highest expression and low variance",
+        width=1400
     )
     
     with open("all_plots.html", "a") as plot_file:

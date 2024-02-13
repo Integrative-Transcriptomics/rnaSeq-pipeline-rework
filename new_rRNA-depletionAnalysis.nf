@@ -12,6 +12,7 @@ def helpMessage() {
       --bams                  .bam input files containg the reads
       --rRNAgenes             Input String of rRNA genes separated by ","
       --gff                   Input file in gff (.gz) format, annotations
+      --fasta                 Input file in fasta format, whole genome
 
     Optional arguments:
       --paired                Paired end reads
@@ -45,6 +46,8 @@ params.pubDir = "Results"
 pubDir = file(params.pubDir)
 gff_file = Channel.fromPath(params.gff, checkIfExists: true)
 alignment_files = Channel.fromPath(params.bams, checkIfExists:true)
+files_for_genomecov = Channel.fromPath(params.bams, checkIfExists:true)
+fasta_file_input = Channel.fromPath(params.fasta, checkIfExists:true)
 
 isPaired = params.paired
 fcStrandness = params.featureCountsS
@@ -145,7 +148,6 @@ process genomecov {
 
     input:
     each path(bams)
-    path(counts)
 
     output:
     path("*.bedgraph")
@@ -154,9 +156,25 @@ process genomecov {
     """
     filename=\$(basename "$bams")
     filename_without_extension="\${filename%.*.*}"
-    bedtools genomecov -bga -ibam $bams > \$filename_without_extension.bedgraph
+    bedtools genomecov -d -ibam $bams > \$filename_without_extension.bedgraph
     """
  
+}
+
+process fasta_preparation{
+    conda 'environment.yml'
+    publishDir "./bin", mode: 'copy'
+
+    input:
+    path(fasta_file)
+
+    output:
+    path("fasta_data")
+
+    script:
+    """
+    prepare_fasta_file.py -f $fasta_file
+    """
 }
 
 workflow {  
@@ -174,5 +192,7 @@ workflow {
 
     ch_depletion_calculation = depletionCalculation(result.txt, featureCounts_g, rRNA_path)
 
-    ch_genomecov = genomecov(alignment_files.collect(), result.summary)
+    ch_genomecov = genomecov(files_for_genomecov.collect())
+
+    ch_fasta_file = fasta_preparation(fasta_file_input)
 }
