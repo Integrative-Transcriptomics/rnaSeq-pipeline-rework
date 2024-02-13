@@ -8,3 +8,6 @@ work/*
 *.html
 *.bedgraph
 /.*html
+*.fna
+fasta_data
+__pycache__
