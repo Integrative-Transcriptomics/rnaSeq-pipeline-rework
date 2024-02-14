@@ -17,7 +17,7 @@ def prepare_counts_file(counts_file):
     
     return counts_data
 
-# File Opens specific bedgraph file and returns dictionary of the genomic references and their
+# File opens specific bedgraph file and returns dictionary of the genomic references and their
 # positions and counts how many reads map to each position
 def prepare_bedgraph_file(bedgraph_file):
 
