@@ -19,13 +19,36 @@ app.title = 'rRNA depletion quality control'
 gene_names = extract_names.extract_gene_names('/Users/sarina/Bachelorarbeit/rnaSeq-pipeline-rework/rRNADepletion/counts.txt')
 sample_names = extract_names.extract_sample_names('/Users/sarina/Bachelorarbeit/rnaSeq-pipeline-rework/rRNADepletion/counts.txt')
 
+# Table Data
+data_expression = pd.read_csv('table_data.csv')
+current_directory = os.getcwd()
+parrent_directory = os.path.dirname(current_directory)
+data_rRNA_ratio = pd.read_csv(parrent_directory + '/rRNADepletion/rRNA_remaining.csv')
+
 # App layout
 app.layout = html.Div([
     html.Header(className='header', children=['Quality control for rRNA depletion in prokaryotes'],
                 style=dict(fontSize = '25px')),
     html.Br(),
+    html.Div(className = 'RadioItems', style = {'color': 'black', 'fontSize': 15, 'fontFamily': 'Arial'},
+             children  = [
+                 html.H5(children = ['Percentage of the number of rRNA read in the individual samples']),
+                 dcc.RadioItems(options = ['total_count', 'rRNA_count', 'ratio'], value='ratio', id='controls-and-radio-item'),]),
+    html.Div(className = 'table',
+             style=dict(font = 'arial'),
+             children = [
+                 dash_table.DataTable(data=data_rRNA_ratio.to_dict('records'),
+                                      columns = [{"name" :i, "id": i } for i in data_rRNA_ratio.columns],
+                                       style_cell={'textAlign': 'left'},
+                                      page_size=10,
+                                      sort_action='native',)
+             ]),
+    html.Div(className = 'barplot',
+             children = [
+                 dcc.Graph(figure = {}, id = 'controls-and-graph')]),
     html.Div(className='row',
              children = [
+                 html.H5(children = ['Wiggle plot for all annotated genes']),
                  html.Div(className = 'dropdown',
                           children = [
                               dcc.Dropdown(
@@ -59,8 +82,8 @@ app.layout = html.Div([
     html.Div(className = 'table', id='table',
              children = [html.H5(children = ['Overview over the top 10 genes with a high expression rate and low variance']),
                          dash_table.DataTable(
-                             data = pd.read_csv('table_data.csv').to_dict('records'),
-                             columns = [{"name" :i, "id": i } for i in pd.read_csv('table_data.csv').columns],
+                             data = data_expression.to_dict('records'),
+                             columns = [{"name" :i, "id": i } for i in data_expression.columns],
                              tooltip_header={
                                  'Mean': 'The mean value represents the average expression rate of the genes. Calculated from the different samples. ',
                                  'Empirical variance': 'The empirical variance indicates how much the individual expression rates of the samples fluctuate around the mean value.',
@@ -71,6 +94,7 @@ app.layout = html.Div([
                                  },
                              tooltip_delay = 0,
                              tooltip_duration = None,
+                             sort_action='native',
                              style_cell={'textAlign': 'left', 'font-family': 'arial'},
                              css=[{
                                  'selector': '.dash-table-tooltip',
@@ -80,6 +104,25 @@ app.layout = html.Div([
              style=dict(font='arial')
                          )
     ], style={'margin' : '40px'})
+
+# Add controld to build interaction
+@callback(
+    Output(component_id='controls-and-graph', component_property='figure'),
+    Input(component_id='controls-and-radio-item', component_property='value')
+)
+
+def update_graph(col_chosen):
+    
+    fig = px.bar(data_rRNA_ratio, x=col_chosen, y='file', color_discrete_sequence =['darkgrey']*len(data_rRNA_ratio))
+    
+    fig.update_layout(
+        xaxis_title= col_chosen,
+        yaxis_title="Individual samples",
+        yaxis=dict(tickfont=dict(size=12),)
+    )
+    return fig
+
+
 
 @callback(
     Output("line_plot", "figure"),
