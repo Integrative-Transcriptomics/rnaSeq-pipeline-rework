@@ -447,7 +447,21 @@ def create_table(rRNA_genes_type, counts_txt, gff_file):
         
     # Swap columns with rows
     cells_values = [[row[i] for row in top_10_results] for i in range(len(top_10_results[0]))]
+    
+    # Create csv file for dash table with tooltip
+    with open("table_data.csv", "w") as file:
+        # Add header values to file
+        file.write(",".join(header_values) + "\n")
+        number_of_columns = len(header_values)
+        print(number_of_columns)
+        number_of_rows = 10
         
+        for i in range(0, number_of_rows):
+            new_line = ""
+            for j in range(0, number_of_columns):
+                new_line = new_line + str(cells_values[j][i]) + ","
+            # Write each line to file    
+            file.write(new_line[:-1] + "\n")
     
     fig = go.Figure(data=[go.Table(header=dict(values=header_values, align='left'),
                  cells=dict(values=cells_values, align='left'))

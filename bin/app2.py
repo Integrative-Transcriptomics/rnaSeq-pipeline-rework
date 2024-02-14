@@ -55,6 +55,30 @@ app.layout = html.Div([
     html.Div(className = 'text', 
              children=['Select an area in the figure above to display the corresponding sequence.']),
     html.Div(className = 'Sequence output', id='sequence_output',style={'white-space': 'pre-wrap', 'word-wrap': 'break-word'}),
+    html.Br(),
+    html.Div(className = 'table', id='table',
+             children = [html.H5(children = ['Overview over the top 10 genes with a high expression rate and low variance']),
+                         dash_table.DataTable(
+                             data = pd.read_csv('table_data.csv').to_dict('records'),
+                             columns = [{"name" :i, "id": i } for i in pd.read_csv('table_data.csv').columns],
+                             tooltip_header={
+                                 'Mean': 'The mean value represents the average expression rate of the genes. Calculated from the different samples. ',
+                                 'Empirical variance': 'The empirical variance indicates how much the individual expression rates of the samples fluctuate around the mean value.',
+                                 'Standard deviation': 'The standard deviation is a number that represents the dispersion or variation of the different expression rates around the mean value. The value is attributed to the same scale as the initial values.',
+                                 'Coefficient of variation': 'he coefficient of variation is a relative measure of the dispersion or variation from the data to the mean value of the expression rates.',
+                                 'Gene ID' : 'Is a unique designation that is assigned to a gene.',
+                                 'Product' : 'The product attribute can contain various information, such as the name of the protein encoded by the gene or a description of its function or property.'
+                                 },
+                             tooltip_delay = 0,
+                             tooltip_duration = None,
+                             style_cell={'textAlign': 'left', 'font-family': 'arial'},
+                             css=[{
+                                 'selector': '.dash-table-tooltip',
+                                 'rule': 'background-color: grey; font-family: monospace; color: white'
+                                 }],
+                             )],
+             style=dict(font='arial')
+                         )
     ], style={'margin' : '40px'})
 
 @callback(
