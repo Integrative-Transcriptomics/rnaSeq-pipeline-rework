@@ -109,7 +109,6 @@ def bar_chart_different_rRNA(rRNA_genes_type, counts_txt):
     
     # create correct number of arrays
     number_of_arrays = len(rRNA_data_tpm[0]) - 7
-    print("Feature counts has information about " + str(number_of_arrays) + " samples.")
     
     for i in range(0, number_of_arrays):
         data_dict_tpm[f"{rRNA_data_tpm[0][i + 7]}"] = []
@@ -209,7 +208,7 @@ def bar_chart_different_rRNA(rRNA_genes_type, counts_txt):
         
     fig.update_layout(
         barmode='group',
-        title='5S, 16S and 23S Expression in the different samples',
+        #title='5S, 16S and 23S Expression in the different samples',
         xaxis1_title="Genes",
         yaxis1_title="Expression number (logarithmic scaling)",
         xaxis2_title="Genes",
@@ -234,6 +233,8 @@ def bar_chart_different_rRNA(rRNA_genes_type, counts_txt):
         plot_file.write(fig.to_html(full_html=False, include_plotlyjs="cdn"))
         
     fig.write_html('genes_barchart.html', auto_open=False)
+    
+    return fig
     
     
 # Bar chart showing the percentage of reads that are 5S, 16S or 23S rRNA
@@ -390,7 +391,7 @@ def readcounts_histogram(counts_txt, rRNA_genes_type):
     #fig.update_yaxes1(range=[0,90])
     fig.update_layout(
         barmode='overlay',
-        title='Histogram of the distribution of read counts per sample',
+        #title='Histogram of the distribution of read counts per sample',
         yaxis1_title="Frequency",
         yaxis2_title="Frequency",
         #yaxis2=dict(autorange='reversed', range=[0,90]),
@@ -420,6 +421,8 @@ def readcounts_histogram(counts_txt, rRNA_genes_type):
         plot_file.write(fig.to_html(full_html=False, include_plotlyjs="cdn"))
         
     fig.write_html('read_counts_histogram.html', auto_open=False)
+    
+    return fig
 
 
 def create_table(rRNA_genes_type, counts_txt, gff_file):
@@ -504,4 +507,4 @@ def main():
     readcounts_histogram(feature_counts, rRNA_genes)
     create_table(rRNA_genes, feature_counts, gff_file)
     
-main()
+#main()

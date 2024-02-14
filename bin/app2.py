@@ -7,6 +7,7 @@ import dash_bootstrap_components as dbc
 import os
 import prepare_data_line_plot as pdlp
 import pickle
+import plot
 
 with open('fasta_data', "rb") as file:
     sequence_data = pickle.load(file)
@@ -24,6 +25,8 @@ data_expression = pd.read_csv('table_data.csv')
 current_directory = os.getcwd()
 parrent_directory = os.path.dirname(current_directory)
 data_rRNA_ratio = pd.read_csv(parrent_directory + '/rRNADepletion/rRNA_remaining.csv')
+rRNA_type_file= parrent_directory + '/rRNA_genes_type.txt'
+counts_file = parrent_directory + '/rRNADepletion/counts.txt'
 
 # App layout
 app.layout = html.Div([
@@ -102,8 +105,20 @@ app.layout = html.Div([
                                  }],
                              )],
              style=dict(font='arial')
-                         )
-    ], style={'margin' : '40px'})
+                         ),
+    html.Br(),
+    html.Div(className =  'bar_chart_different_rRNA_types',
+             children = [
+                 html.H5(children = ['5S, 16S and 23S expression in the different samples']),
+                 dcc.Graph(figure = plot.bar_chart_different_rRNA(rRNA_type_file, counts_file), style = {'height' : '800px'}),
+             ]),
+    html.Br(),
+    html.Div(className = 'readcounts_histogram',
+             children = [
+                 html.H5(children = ['Histogram of the distribution of read counts per sample']),
+                 dcc.Graph(figure = plot.readcounts_histogram(counts_file, rRNA_type_file), style = {'height' : '800px'})
+             ])
+    ], style={'margin' : '40px', 'height' : 'auto'})
 
 # Add controld to build interaction
 @callback(
