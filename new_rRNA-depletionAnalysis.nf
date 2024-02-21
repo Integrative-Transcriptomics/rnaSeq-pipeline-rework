@@ -91,7 +91,7 @@ process convertGFFtoGTF{
 
 // counts features for depletion analysis
 process featureCounts{
-    publishDir "./rRNADepletion", mode: 'copy'
+    publishDir "$pubDir/rRNADepletion", mode: 'copy'
     conda 'environment.yml'
 
     input:
@@ -126,7 +126,7 @@ process featureCounts{
 process depletionCalculation{
     debug true
     conda 'environment.yml'
-    publishDir "./rRNADepletion", mode: 'copy'
+    publishDir "$pubDir/rRNADepletion", mode: 'copy'
 
     input:
     path(featureCounts)
@@ -144,7 +144,7 @@ process depletionCalculation{
 
 process genomecov {
     conda 'environment.yml'
-    publishDir "./rRNADepletion", mode: 'copy'
+    publishDir "pubDir/rRNADepletion", mode: 'copy'
 
     input:
     each path(bams)

@@ -91,7 +91,7 @@ app.layout = html.Div([
                                  'Mean': 'The mean value represents the average expression rate of the genes. Calculated from the different samples. ',
                                  'Empirical variance': 'The empirical variance indicates how much the individual expression rates of the samples fluctuate around the mean value.',
                                  'Standard deviation': 'The standard deviation is a number that represents the dispersion or variation of the different expression rates around the mean value. The value is attributed to the same scale as the initial values.',
-                                 'Coefficient of variation': 'he coefficient of variation is a relative measure of the dispersion or variation from the data to the mean value of the expression rates.',
+                                 'Coefficient of variation': 'The coefficient of variation is a relative measure of the dispersion or variation from the data to the mean value of the expression rates.',
                                  'Gene ID' : 'Is a unique designation that is assigned to a gene.',
                                  'Product' : 'The product attribute can contain various information, such as the name of the protein encoded by the gene or a description of its function or property.'
                                  },
