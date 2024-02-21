@@ -304,7 +304,7 @@ process samtools{
 //Qualimap on bam
 process qualimap_bamqc{
     tag "$id"
-    publishDir "$pubDir/QualiMapsRNAseq/", mode: 'copy'
+    publishDir "$pubDir/QualiMapsBamQC/", mode: 'copy'
 
     when:
     noQualiControl == false && noFC == false && noQualiControlRNA == false
@@ -331,8 +331,8 @@ process qualimap_rnaseq{
     noQualiControl == false && noFC == false && noQualiControlRNA == false
 
     input:
+    val annotation
     tuple val(id), file(bam)
-    file annotation
 
     output:
     tuple val(id), file("${id}")
@@ -363,7 +363,6 @@ process multiqc{
 
     script:
     """
-    pip install packaging
     multiqc .\\
         -m custom_content -m picard -m preseq -m rseqc -m featureCounts -m hisat2 -m star -m cutadapt -m sortmerna -m fastqc -m qualimap -m salmon
     """
@@ -373,7 +372,7 @@ workflow{
     genome_ch = unZipGenome(genome_file) //genome_fasta
     gff_ch = unZipGFF(gff_file)
     gtf_ch = convertGFFtoGTF(gff_ch)
-    gtf_2_ch = gtf_ch
+    gtf_2 = gtf_ch
     fastqc_results_ch = fastqc(reads_fastQC) 
   
     trimming_ch = trimming(reads_trimgalore)
@@ -394,10 +393,9 @@ workflow{
     samtools_ch = samtools(alignment_files)
     sorted_alignment_files_bamqc_ch = samtools_ch[0]
     sorted_alignment_files_rnaseq_ch = samtools_ch[1]
-
-    qualimap_bamqc_results_ch = qualimap_bamqc(sorted_alignment_files_bamqc_ch, )
-
-    qualimap_rnaseq_results_ch = qualimap_rnaseq(sorted_alignment_files_rnaseq_ch, gtf_2_ch)
+    
+    qualimap_bamqc_results_ch = qualimap_bamqc(sorted_alignment_files_bamqc_ch)
+    qualimap_rnaseq_results_ch = qualimap_rnaseq(gtf_2.first(), sorted_alignment_files_rnaseq_ch)
 
     multiqc_report_ch = multiqc(fastqc_results_ch.collect().ifEmpty([]), 
     trimgalore_results.collect().ifEmpty([]),
