@@ -1,11 +1,11 @@
-Mean,Empirical variance,Standard deviation,Coefficient of variation,Gene ID,Product
-1750.44,997967.67,998.98,0.57,SCO5477,oligopeptide-binding lipoprotein
-1832.44,1207382.61,1098.81,0.6,SCO5729,hypothetical protein
-1712.22,1378113.71,1173.93,0.69,SCO5085,actinorhodin operon activator protein
-1768.39,1459588.13,1208.13,0.68,SCO1521,hypothetical protein
-1764.44,1728374.14,1314.68,0.75,SCO5570,hypothetical protein
-1714.0,1743320.12,1320.35,0.77,SCO2525,hypothetical protein
-1730.0,1855172.94,1362.05,0.79,SCO4947,nitrate reductase subunit alpha NarG3
-2271.67,1939676.71,1392.72,0.61,SCO2078,hypothetical protein
-1948.89,1945610.93,1394.85,0.72,SCO0641,tellurium resistance protein
-1873.22,2100115.48,1449.18,0.77,SCO3005,preprotein translocase subunit SecA
+Mean,Standard deviation,Coefficient of variation,Gene ID,Product
+1750.44,998.98,0.57,SCO5477,oligopeptide-binding lipoprotein
+1832.44,1098.81,0.6,SCO5729,hypothetical protein
+1712.22,1173.93,0.69,SCO5085,actinorhodin operon activator protein
+1768.39,1208.13,0.68,SCO1521,hypothetical protein
+1764.44,1314.68,0.75,SCO5570,hypothetical protein
+1714.0,1320.35,0.77,SCO2525,hypothetical protein
+1730.0,1362.05,0.79,SCO4947,nitrate reductase subunit alpha NarG3
+2271.67,1392.72,0.61,SCO2078,hypothetical protein
+1948.89,1394.85,0.72,SCO0641,tellurium resistance protein
+1873.22,1449.18,0.77,SCO3005,preprotein translocase subunit SecA

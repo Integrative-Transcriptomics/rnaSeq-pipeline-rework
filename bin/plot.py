@@ -427,7 +427,7 @@ def readcounts_histogram(counts_txt, rRNA_genes_type):
 
 def create_table(rRNA_genes_type, counts_txt, gff_file):
     #["mean_values" , "empirical_variance", "standard_deviation", "coefficient_of_variation", "gene"]
-    header_values = ['Mean', 'Empirical variance', 'Standard deviation', 'Coefficient of variation', 'Gene ID', 'Product']
+    header_values = ['Mean', 'Standard deviation', 'Coefficient of variation', 'Gene ID', 'Product']
     genes = []
     gff_content = gff_parser.gff_file_parser(gff_file)
     
@@ -456,13 +456,13 @@ def create_table(rRNA_genes_type, counts_txt, gff_file):
         # Add header values to file
         file.write(",".join(header_values) + "\n")
         number_of_columns = len(header_values)
-        print(number_of_columns)
         number_of_rows = 10
         
         for i in range(0, number_of_rows):
             new_line = ""
-            for j in range(0, number_of_columns):
-                new_line = new_line + str(cells_values[j][i]) + ","
+            for j in range(0, number_of_columns + 1 ):
+                if j != 1:#
+                    new_line = new_line + str(cells_values[j][i]) + ","
             # Write each line to file    
             file.write(new_line[:-1] + "\n")
     

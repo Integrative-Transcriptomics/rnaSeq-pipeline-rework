@@ -46,6 +46,8 @@ def get_start_and_end_position(counts_data, gene, genome_reference):
         # return start and end position 
         if gene_entry[0] == gene and gene_entry[1] == genome_reference:
             return([gene_entry[2], gene_entry[3]]) # [start, end]
+    
+    return(0,0)
      
     
     
@@ -59,24 +61,28 @@ def prepare_dataset_for_graph(start_and_end_position, bedgraph_data, genome_refe
     start = 0
     end = 0
     
-    # If there are multiple genome references, choose current one
-    current_bedgraph_data = bedgraph_data[genome_reference]
-    
-    # Start and end position
-    if len(start_and_end_position) == 2:
-        start = int(start_and_end_position[0])
-        end = int(start_and_end_position[1])
+        
+    if genome_reference is None or start_and_end_position is None or bedgraph_data is None:
+        return pd.DataFrame({'x': [], 'y': []})
     else:
-        raise ValueError('Gene could not be found and has no start and end position.')
+        # If there are multiple genome references, choose current one
+        current_bedgraph_data = bedgraph_data[genome_reference]
+    
+        # Start and end position
+        if len(start_and_end_position) == 2:
+            start = int(start_and_end_position[0])
+            end = int(start_and_end_position[1])
+        else:
+            raise ValueError('Gene could not be found and has no start and end position.')
     
     
-    # Iterate over all positions between start and end
-    for i in range(start, end):
-        y.append(current_bedgraph_data[i])
-        x.append(i)
+        # Iterate over all positions between start and end
+        for i in range(start, end):
+            y.append(current_bedgraph_data[i])
+            x.append(i)
     
-    # Prepate dataset for plotly graph
-    data = pd.DataFrame({'x' : x, 'y' : y})
+        # Prepate dataset for plotly graph
+        data = pd.DataFrame({'x' : x, 'y' : y})
 
-    return data 
+        return data 
 

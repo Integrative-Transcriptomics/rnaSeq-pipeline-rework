@@ -8,6 +8,7 @@ import os
 import prepare_data_line_plot as pdlp
 import pickle
 import plot
+import time
 
 with open('fasta_data', "rb") as file:
     sequence_data = pickle.load(file)
@@ -15,10 +16,6 @@ with open('fasta_data', "rb") as file:
 # Initialize the app
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 app.title = 'rRNA depletion quality control'
-# Prepare dropdown
-
-gene_names = extract_names.extract_gene_names('/Users/sarina/Bachelorarbeit/rnaSeq-pipeline-rework/rRNADepletion/counts.txt')
-sample_names = extract_names.extract_sample_names('/Users/sarina/Bachelorarbeit/rnaSeq-pipeline-rework/rRNADepletion/counts.txt')
 
 # Table Data
 data_expression = pd.read_csv('table_data.csv')
@@ -27,6 +24,14 @@ parrent_directory = os.path.dirname(current_directory)
 data_rRNA_ratio = pd.read_csv(parrent_directory + '/rRNADepletion/rRNA_remaining.csv')
 rRNA_type_file= parrent_directory + '/rRNA_genes_type.txt'
 counts_file = parrent_directory + '/rRNADepletion/counts.txt'
+
+# Prepare dropdown
+
+gene_names = extract_names.extract_gene_names(counts_file)
+sample_names = extract_names.extract_sample_names(counts_file)
+
+# Genome reference names
+genome_reference_names = list(sequence_data.keys())
 
 # App layout
 app.layout = html.Div([
@@ -61,7 +66,7 @@ app.layout = html.Div([
                                   placeholder = 'Select sample'
                               )
                           ],
-                          style = dict(width='50%')),
+                          style = dict(width='30%')),
                  html.Div(className = 'dropdown',
                           children = [
                               dcc.Dropdown(
@@ -71,12 +76,23 @@ app.layout = html.Div([
                                   placeholder = 'Select gene'
                               )
                           ],
-                          style = dict(width='50%')),
+                          style = dict(width='30%')),
+                 html.Div(className = 'dropdown',
+                          children = [
+                              dcc.Dropdown(
+                                  id = 'dropdown_genome_reference',
+                                  options = genome_reference_names,
+                                  value = str(genome_reference_names[0]),
+                                  placeholder = 'Select genome reference'
+                              )
+                          ],
+                          style = dict(width='30%')),
              ],
              style=dict(display='flex')),
+    html.Br(),
     html.Div(className = 'Line Plot',
              children = [
-                 dcc.Graph(id = 'line_plot')
+                 dcc.Graph(id = 'line_plot'),
              ]),
     html.Div(className = 'text', 
              children=['Select an area in the figure above to display the corresponding sequence.']),
@@ -89,7 +105,7 @@ app.layout = html.Div([
                              columns = [{"name" :i, "id": i } for i in data_expression.columns],
                              tooltip_header={
                                  'Mean': 'The mean value represents the average expression rate of the genes. Calculated from the different samples. ',
-                                 'Empirical variance': 'The empirical variance indicates how much the individual expression rates of the samples fluctuate around the mean value.',
+                                 #'Empirical variance': 'The empirical variance indicates how much the individual expression rates of the samples fluctuate around the mean value.',
                                  'Standard deviation': 'The standard deviation is a number that represents the dispersion or variation of the different expression rates around the mean value. The value is attributed to the same scale as the initial values.',
                                  'Coefficient of variation': 'The coefficient of variation is a relative measure of the dispersion or variation from the data to the mean value of the expression rates.',
                                  'Gene ID' : 'Is a unique designation that is assigned to a gene.',
@@ -120,7 +136,7 @@ app.layout = html.Div([
              ])
     ], style={'margin' : '40px', 'height' : 'auto'})
 
-# Add controld to build interaction
+# Bar Plot with rRNA ratio
 @callback(
     Output(component_id='controls-and-graph', component_property='figure'),
     Input(component_id='controls-and-radio-item', component_property='value')
@@ -138,15 +154,17 @@ def update_graph(col_chosen):
     return fig
 
 
-
+# Line plot with 
 @callback(
     Output("line_plot", "figure"),
+
     [Input('dropdown_samples', "value"),
-     Input('dropdown_genes', 'value')]
+     Input('dropdown_genes', 'value'),
+     Input('dropdown_genome_reference', 'value'),]
 )
 
-def update_line_plot(sample, gene):
-    
+def update_line_plot(sample, gene, reference):
+    time.sleep(5)
     current_dict = os.getcwd()
     parrent_dict = os.path.dirname(current_dict)
     sample_name, extension = os.path.splitext(sample)
@@ -157,13 +175,11 @@ def update_line_plot(sample, gene):
     path_counts_txt = parrent_dict + '/rRNADepletion/counts.txt'
     path_bedgraph = parrent_dict + '/rRNADepletion/' + sample_name + '.bedgraph'
     
-    genome_reference = 'NC_003888.3'
-    
     counts_data = pdlp.prepare_counts_file(path_counts_txt)
     bedgraph_data = pdlp.prepare_bedgraph_file(path_bedgraph)
     
-    start_and_end_position = pdlp.get_start_and_end_position(counts_data, gene, genome_reference)
-    data = pdlp.prepare_dataset_for_graph(start_and_end_position, bedgraph_data, genome_reference)
+    start_and_end_position = pdlp.get_start_and_end_position(counts_data, gene, reference)
+    data = pdlp.prepare_dataset_for_graph(start_and_end_position, bedgraph_data, reference)
     
     fig = px.line(data, x = 'x', y = 'y', color_discrete_sequence=['darkgrey'])
     
@@ -174,6 +190,7 @@ def update_line_plot(sample, gene):
     )
     
     return fig
+
 
 @callback(
     Output("sequence_output", "children"),
