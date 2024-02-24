@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import plotly.express as px
 import pandas as pd
 import argparse
@@ -7,6 +9,7 @@ import numpy as np
 import math
 import sys, getopt
 from glob import glob
+import gff_parser
 
 """ 
 command for execution:

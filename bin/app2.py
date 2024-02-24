@@ -18,12 +18,12 @@ app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 app.title = 'rRNA depletion quality control'
 
 # Table Data
-data_expression = pd.read_csv('table_data.csv')
 current_directory = os.getcwd()
 parrent_directory = os.path.dirname(current_directory)
 data_rRNA_ratio = pd.read_csv(parrent_directory + '/Results/rRNADepletion/rRNA_remaining.csv')
 counts_file = parrent_directory + '/Results/rRNADepletion/counts.txt'
 rRNA_type_file= parrent_directory + '/rRNA_genes_type.txt'
+data_expression = pd.read_csv(parrent_directory + '\Results/rRNADepletion/table_data.csv')
 
 # Prepare dropdown
 gene_names = extract_names.extract_gene_names(counts_file)

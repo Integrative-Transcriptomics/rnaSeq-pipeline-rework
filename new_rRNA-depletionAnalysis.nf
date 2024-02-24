@@ -179,7 +179,7 @@ process fasta_preparation{
 
 process table_preparation{
     conda 'environment.yml'
-    publishDir "./bin", mode: 'copy'
+    publishDir "$pubDir/rRNADepletion", mode: 'copy'
 
     input:
     path(genes_and_type)
