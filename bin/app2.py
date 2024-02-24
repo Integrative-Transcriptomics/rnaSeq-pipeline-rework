@@ -21,12 +21,11 @@ app.title = 'rRNA depletion quality control'
 data_expression = pd.read_csv('table_data.csv')
 current_directory = os.getcwd()
 parrent_directory = os.path.dirname(current_directory)
-data_rRNA_ratio = pd.read_csv(parrent_directory + '/rRNADepletion/rRNA_remaining.csv')
+data_rRNA_ratio = pd.read_csv(parrent_directory + '/Results/rRNADepletion/rRNA_remaining.csv')
+counts_file = parrent_directory + '/Results/rRNADepletion/counts.txt'
 rRNA_type_file= parrent_directory + '/rRNA_genes_type.txt'
-counts_file = parrent_directory + '/rRNADepletion/counts.txt'
 
 # Prepare dropdown
-
 gene_names = extract_names.extract_gene_names(counts_file)
 sample_names = extract_names.extract_sample_names(counts_file)
 

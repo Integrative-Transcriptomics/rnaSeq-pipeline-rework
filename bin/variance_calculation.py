@@ -100,7 +100,48 @@ def calculate_empirical_variance(rRNA_genes_type, counts_txt):
     return(sorted_first_100_genes_after_variance[:10])
     
     # print(intersection)
+    # Create csv Datei with all values calculated in calculate_empirical_variance
+def create_table(rRNA_genes_type, counts_txt, gff_file):
+    #["mean_values" , "empirical_variance", "standard_deviation", "coefficient_of_variation", "gene"]
+    header_values = ['Mean', 'Standard deviation', 'Coefficient of variation', 'Gene ID', 'Product']
+    genes = []
+    gff_content = gff_parser.gff_file_parser(gff_file)
     
+    top_10_results = calculate_empirical_variance(rRNA_genes_type, counts_txt)
+    
+    # Extract all genes from the top results
+    for result in top_10_results:
+        genes.append(result[-1])
+        
+    for line in gff_content:
+        product = None
+        if "locus_tag" in line[-1]:
+            gene_id = line[-1]["locus_tag"]
+            if gene_id in genes:
+                if "product" in line[-1]:
+                    product = line[-1]["product"]
+                    for gene in top_10_results:
+                        if gene[-1] == gene_id:
+                            gene.append(product)
+        
+    # Swap columns with rows
+    cells_values = [[row[i] for row in top_10_results] for i in range(len(top_10_results[0]))]
+    
+    # Create csv file for dash table with tooltip
+    with open("table_data.csv", "w") as file:
+        # Add header values to file
+        file.write(",".join(header_values) + "\n")
+        number_of_columns = len(header_values)
+        number_of_rows = 10
+        
+        for i in range(0, number_of_rows):
+            new_line = ""
+            for j in range(0, number_of_columns + 1 ):
+                if j != 1:#
+                    new_line = new_line + str(cells_values[j][i]) + ","
+            # Write each line to file    
+            file.write(new_line[:-1] + "\n")
+
     
 
 def main():
@@ -110,13 +151,15 @@ def main():
     # Add command-line arguments
     parser.add_argument("-genesf", "--rRNA_genes", help="Path to the file containing all rRNA genes", required=True)
     parser.add_argument("-fcf", "--feature_counts_file", help="Output file counts.txt of featureCounts", required=True)
+    parser.add_argument("-gff", "--gff_file", help="Gff file", required=True)
 
     # Parse the command-line arguments
     args = parser.parse_args()
     
     rRNA_genes = args.rRNA_genes
     feature_counts = args.feature_counts_file
+    gff = args.gff_file
     
-    calculate_empirical_variance(rRNA_genes, feature_counts)
+    create_table(rRNA_genes, feature_counts, gff)
     
-#main()
+main()

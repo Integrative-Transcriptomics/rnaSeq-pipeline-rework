@@ -6,49 +6,8 @@ from plotly.subplots import make_subplots
 import numpy as np
 import tpm_calculation as tpm 
 import normalization_percentage as norm_percent
-import variance_calculation as vc
 import gff_parser as gff_parser
 import random
-
-
-# creates a bar chart, with all samples and the given rRNA percentage
-def bar_chart_procent(rRNA_remaining):
-    
-    file_data = []
-    samples = []
-    ratios =[]
-    
-    with open(rRNA_remaining) as file:
-        for line in file:
-            file_data.append(line.strip().split(','))
-    
-    for sample in file_data[1:]:
-        samples.append(sample[0])
-        ratios.append(float(sample[-1]))
-        
-    data_dict = {
-        'Samples' : samples,
-        'Ratio' : ratios,
-    }
-    
-    data = pd.DataFrame(data_dict)
-        
-    fig = px.bar(data, x='Ratio', y='Samples', color_discrete_sequence=['darkgrey']*len(data))
-    
-    fig.update_layout(
-        title='Percentage of the number of rRNA reads in the individual samples',
-        xaxis_title="Number of reads in percent",
-        yaxis_title="Individual samples",
-        yaxis=dict(tickfont=dict(size=12),),
-        height= 600,
-        width = 1400
-    )
-    
-    with open("all_plots.html", "a") as plot_file:
-        plot_file.write(fig.to_html(full_html=False, include_plotlyjs="cdn"))
-        
-    fig.write_html('ratio_plot.html', auto_open=False)
-    
 
 # Creates a bar chart for each sample, indicating how much 5S, 16S and 23S rRNA is still present.
 # tpm normalization and normalization in percent
@@ -228,12 +187,7 @@ def bar_chart_different_rRNA(rRNA_genes_type, counts_txt):
         width=1400,  
     )
     
-    
-    with open("all_plots.html", "a") as plot_file:
-        plot_file.write(fig.to_html(full_html=False, include_plotlyjs="cdn"))
         
-    fig.write_html('genes_barchart.html', auto_open=False)
-    
     return fig
     
     
@@ -414,71 +368,10 @@ def readcounts_histogram(counts_txt, rRNA_genes_type):
         width=1400)
     fig.update_traces(opacity=0.25)
     fig.update_xaxes(title_text="Read frequency per Gene (logarithmic scaling)", row=2, col=1)
-
-    
-    
-    with open("all_plots.html", "a") as plot_file:
-        plot_file.write(fig.to_html(full_html=False, include_plotlyjs="cdn"))
-        
-    fig.write_html('read_counts_histogram.html', auto_open=False)
     
     return fig
 
 
-def create_table(rRNA_genes_type, counts_txt, gff_file):
-    #["mean_values" , "empirical_variance", "standard_deviation", "coefficient_of_variation", "gene"]
-    header_values = ['Mean', 'Standard deviation', 'Coefficient of variation', 'Gene ID', 'Product']
-    genes = []
-    gff_content = gff_parser.gff_file_parser(gff_file)
-    
-    top_10_results = vc.calculate_empirical_variance(rRNA_genes_type, counts_txt)
-    
-    # Extract all genes from the top results
-    for result in top_10_results:
-        genes.append(result[-1])
-        
-    for line in gff_content:
-        product = None
-        if "locus_tag" in line[-1]:
-            gene_id = line[-1]["locus_tag"]
-            if gene_id in genes:
-                if "product" in line[-1]:
-                    product = line[-1]["product"]
-                    for gene in top_10_results:
-                        if gene[-1] == gene_id:
-                            gene.append(product)
-        
-    # Swap columns with rows
-    cells_values = [[row[i] for row in top_10_results] for i in range(len(top_10_results[0]))]
-    
-    # Create csv file for dash table with tooltip
-    with open("table_data.csv", "w") as file:
-        # Add header values to file
-        file.write(",".join(header_values) + "\n")
-        number_of_columns = len(header_values)
-        number_of_rows = 10
-        
-        for i in range(0, number_of_rows):
-            new_line = ""
-            for j in range(0, number_of_columns + 1 ):
-                if j != 1:#
-                    new_line = new_line + str(cells_values[j][i]) + ","
-            # Write each line to file    
-            file.write(new_line[:-1] + "\n")
-    
-    fig = go.Figure(data=[go.Table(header=dict(values=header_values, align='left'),
-                 cells=dict(values=cells_values, align='left'))
-                     ])
-        
-    fig.update_layout(
-        title = "Top 10 genes with highest expression and low variance",
-        width=1400
-    )
-    
-    with open("all_plots.html", "a") as plot_file:
-        plot_file.write(fig.to_html(full_html=False, include_plotlyjs="cdn"))
-    
-    fig.write_html('table_highest_expression_low_variance.html', auto_open=False)
 
 # Calls plot functions 
 def main():
@@ -502,7 +395,6 @@ def main():
     
     open("all_plots.html", "w").close()
     
-    bar_chart_procent(rRNA_remaining)
     bar_chart_different_rRNA(rRNA_genes, feature_counts)
     readcounts_histogram(feature_counts, rRNA_genes)
     create_table(rRNA_genes, feature_counts, gff_file)

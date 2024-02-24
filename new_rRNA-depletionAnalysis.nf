@@ -177,9 +177,30 @@ process fasta_preparation{
     """
 }
 
+process table_preparation{
+    conda 'environment.yml'
+    publishDir "./bin", mode: 'copy'
+
+    input:
+    path(genes_and_type)
+    path(counts_file)
+    path(gff_file)
+
+    output:
+    path('table_data.csv')
+
+    script:
+    """
+    variance_calculation.py -fcf $counts_file -genesf $genes_and_type  -gff $gff_file
+    """
+}
+
 workflow {  
     ch_gff = unZipGFF(gff_file)
+    ch_gff_copy = ch_gff
     ch_gtf = convertGFFtoGTF(ch_gff)
+
+    rRNA_path_copy = rRNA_path
     
     ch_feature_counts = featureCounts(featureCounts_g, featureCounts_t, featureCounts_extra, ch_gtf, alignment_files.collect())
     ch_feature_counts
@@ -190,9 +211,13 @@ workflow {
         }
         | set { result }
 
+    counts_file = result.txt
+
     ch_depletion_calculation = depletionCalculation(result.txt, featureCounts_g, rRNA_path)
 
     ch_genomecov = genomecov(files_for_genomecov.collect())
 
     ch_fasta_file = fasta_preparation(fasta_file_input)
+
+    ch_table = table_preparation(rRNA_path_copy, counts_file, ch_gff_copy)
 }
