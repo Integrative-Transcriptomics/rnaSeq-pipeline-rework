@@ -1,11 +1,11 @@
 Mean,Standard deviation,Coefficient of variation,Gene ID,Product
-1750.44,998.98,0.57,SCO5477,oligopeptide-binding lipoprotein
-1832.44,1098.81,0.6,SCO5729,hypothetical protein
-1712.22,1173.93,0.69,SCO5085,actinorhodin operon activator protein
-1768.39,1208.13,0.68,SCO1521,hypothetical protein
-1764.44,1314.68,0.75,SCO5570,hypothetical protein
-1714.0,1320.35,0.77,SCO2525,hypothetical protein
-1730.0,1362.05,0.79,SCO4947,nitrate reductase subunit alpha NarG3
-2271.67,1392.72,0.61,SCO2078,hypothetical protein
-1948.89,1394.85,0.72,SCO0641,tellurium resistance protein
-1873.22,1449.18,0.77,SCO3005,preprotein translocase subunit SecA
+1455.5,1444.62,0.99,SCO7510,peptidyl-prolyl cis-trans isomerase
+1918.5,1487.05,0.78,SCO6197,hypothetical protein
+1459.0,1537.25,1.05,SCO3409,inorganic pyrophosphatase
+2947.5,1696.35,0.58,SCO4761,co-chaperonin GroES
+1487.5,1761.4,1.18,SCO4655,DNA-directed RNA polymerase subunit beta'
+1665.0,1777.67,1.07,SCO4725,translation initiation factor IF-1
+1430.5,1785.44,1.25,SCO2525,hypothetical protein
+1459.5,1813.73,1.24,SCO5029,hypothetical protein
+1451.0,1868.18,1.29,SCO0705,hypothetical protein
+1427.5,1875.95,1.31,SCO2014,pyruvate kinase
