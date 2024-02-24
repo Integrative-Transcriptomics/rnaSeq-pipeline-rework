@@ -11,3 +11,4 @@ work/*
 *.fna
 fasta_data
 __pycache__
+./Results
