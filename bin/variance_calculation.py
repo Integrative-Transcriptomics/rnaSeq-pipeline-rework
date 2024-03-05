@@ -18,7 +18,6 @@ def calculate_empirical_variance(rRNA_genes_type, counts_txt):
     # Datasets 
     genes_data = [] #[[gene_id, type], [gene_id, type], ...]
     counts_data = [] # [[Geneid, Chr, Start, End, Strand, Length, gene_name, sample1, sample2, ...], [..., ..., ..., ...]];field 7 -> end 
-    not_rRNA_genes = []
     
     # Values in TPM format
     tpm_values = tpm.tpm_calculation(counts_txt)
