@@ -32,12 +32,6 @@ if (params.help){
     exit 0
 }
 
-// Show help message
-params.help = false
-if (params.help){
-    helpMessage()
-    exit 0
-}
 params.paired = false
 params.featureCountsS = 'reverse'
 params.g = 'locus_tag'
