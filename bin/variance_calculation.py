@@ -10,7 +10,7 @@ import math
 import sys, getopt
 from glob import glob
 import gff_parser
-import bin.tpm_calculation as tpm
+import tpm_calculation as tpm
 
 # calculates the empirical variance
 def calculate_empirical_variance(rRNA_genes_type, counts_txt):

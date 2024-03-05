@@ -19,18 +19,15 @@ def prepare_counts_file(counts_file):
 
 # File opens specific bedgraph file and returns dictionary of the genomic references and their
 # positions and counts how many reads map to each position
-def prepare_bedgraph_file(bedgraph_file):
+def prepare_bedgraph_file(bedgraph_file, genome_reference):
 
     bedgraph_data = {} # {'NC_03888.3' : {1 : 0; 2 : 0, 3 : 0, ...}, 'NC_03888.2' : {1 : 0; 2 : 0; ....}}
-    genome_reference = ""
+    bedgraph_data[genome_reference] = {}
     
     with open(bedgraph_file, "r") as file:
         for line in file:
             line_list = line.strip().split('\t')
-            if genome_reference != line_list[0]:
-                genome_reference = line_list[0]
-                bedgraph_data[genome_reference] = {}
-            else:
+            if genome_reference == line_list[0]:
                 key = int(line_list[1])
                 value = int(line_list[2])
                 bedgraph_data[genome_reference][key] = value
@@ -67,6 +64,7 @@ def prepare_dataset_for_graph(start_and_end_position, bedgraph_data, genome_refe
     else:
         # If there are multiple genome references, choose current one
         current_bedgraph_data = bedgraph_data[genome_reference]
+        print(current_bedgraph_data)
     
         # Start and end position
         if len(start_and_end_position) == 2:
@@ -77,10 +75,10 @@ def prepare_dataset_for_graph(start_and_end_position, bedgraph_data, genome_refe
     
     
         # Iterate over all positions between start and end
-        for i in range(start, end):
+        for i in range(start, end+1):
             y.append(current_bedgraph_data[i])
             x.append(i)
-    
+            
         # Prepate dataset for plotly graph
         data = pd.DataFrame({'x' : x, 'y' : y})
 

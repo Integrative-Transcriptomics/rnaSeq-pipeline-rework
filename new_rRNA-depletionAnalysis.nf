@@ -10,9 +10,10 @@ def helpMessage() {
 
     Mandatory arguments:
       --bams                  .bam input files containg the reads
-      --rRNAgenes             Input String of rRNA genes separated by ","
+      --rRNAgenes             Input string of rRNA genes separated by ","
       --gff                   Input file in gff (.gz) format, annotations
       --fasta                 Input file in fasta format, whole genome
+      --genomeReference       Input string of reference genome
 
     Optional arguments:
       --paired                Paired end reads
@@ -48,6 +49,12 @@ gff_file = Channel.fromPath(params.gff, checkIfExists: true)
 alignment_files = Channel.fromPath(params.bams, checkIfExists:true)
 files_for_genomecov = Channel.fromPath(params.bams, checkIfExists:true)
 fasta_file_input = Channel.fromPath(params.fasta, checkIfExists:true)
+if(!params.genomeReference){
+    error('no data specified --genomeReference')
+}
+else{
+    genome_ref = params.genomeReference
+}
 
 isPaired = params.paired
 fcStrandness = params.featureCountsS
@@ -167,13 +174,14 @@ process fasta_preparation{
 
     input:
     path(fasta_file)
+    val(reference_genome)
 
     output:
     path("fasta_data")
 
     script:
     """
-    prepare_fasta_file.py -f $fasta_file
+    prepare_fasta_file.py -f $fasta_file  -gf $reference_genome
     """
 }
 
@@ -217,7 +225,7 @@ workflow {
 
     ch_genomecov = genomecov(files_for_genomecov.collect())
 
-    ch_fasta_file = fasta_preparation(fasta_file_input)
+    ch_fasta_file = fasta_preparation(fasta_file_input, genome_ref)
 
     ch_table = table_preparation(rRNA_path_copy, counts_file, ch_gff_copy)
 }
