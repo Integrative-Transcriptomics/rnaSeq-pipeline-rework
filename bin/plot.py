@@ -75,7 +75,7 @@ def bar_chart_different_rRNA(rRNA_genes_type, counts_txt):
     
     for count in rRNA_data_tpm[1:]:
         for i in range(0, number_of_arrays):
-            number_tpm = np.log10(float(count[i + 7]))
+            number_tpm = np.log10(float(count[i + 7])) #Pseudocount löst Problem von log(0) oder soll man extra Fall erstellen das es dann einfach 0 ist?
             data_dict_tpm[f"{rRNA_data_tpm[0][i + 7]}"].append(number_tpm)
     
     for count in rRNA_data_percent[1:]:
