@@ -6,7 +6,7 @@ def helpMessage() {
     ==------------------------------------==
     Usage:
     The typical command for running the pipeline is as follows:
-    nextflow run rRNA-depletionAnalysis.nf --bams  "*.bam" --gff <.gff.gz> -rRNAgenes A,B,C -profile conda
+    nextflow run new_rRNA-depletionAnalysis.nf --bams "*.bam" --gff <*.gff.gz> --rRNAgenes <rRNA_genes_type.txt> --fasta <*.fna> --genomeReference 'NC_003888.3' -profile conda
 
     Mandatory arguments:
       --bams                  .bam input files containg the reads
