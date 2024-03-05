@@ -180,34 +180,12 @@ def update_line_plot(sample, gene):
         )
         return fig
     except:
-        '''data = pd.DataFrame({'x': [], 'y': []})
+        data = pd.DataFrame({'x': [], 'y': []})
         
         fig = px.line(data, x = 'x', y = 'y', color_discrete_sequence=['darkgrey'])
         
         fig.update_layout(
             title = 'Please choose a sample and a gene',
-            xaxis_title='Position',
-            yaxis_title='Coverage per position',
-        )'''
-        parrent_dict = os.path.dirname(current_dict)
-        sample_name, extension = os.path.splitext(sample)
-        
-        if '.sorted' in sample_name:
-            sample_name = sample_name.replace('.sorted', '')
-
-        path_counts_txt = parrent_dict + '/Results/rRNADepletion/counts.txt'
-        path_bedgraph = parrent_dict + '/Results/rRNADepletion/' + sample_name + '.bedgraph'
-        
-        counts_data = pdlp.prepare_counts_file(path_counts_txt)
-        bedgraph_data = pdlp.prepare_bedgraph_file(path_bedgraph, genome_reference[0])
-        
-        start_and_end_position = pdlp.get_start_and_end_position(counts_data, gene, genome_reference[0])
-        data = pdlp.prepare_dataset_for_graph(start_and_end_position, bedgraph_data, genome_reference[0])
-        
-        fig = px.line(data, x = 'x', y = 'y', color_discrete_sequence=['darkgrey'])
-        
-        fig.update_layout(
-            title = f'Overview over position coverage for the {gene} gene in {sample} ',
             xaxis_title='Position',
             yaxis_title='Coverage per position',
         )
