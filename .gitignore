@@ -12,3 +12,4 @@ work/*
 fasta_data
 __pycache__
 Results/
+Backup/
