@@ -14,7 +14,7 @@ def parse_fasta_file(fasta_file, genome_reference):
     # Open fasta file and write into data structure
     with open(fasta_file, "r") as file:
         for line in file:
-            if line.startswith(">") and genome_reference in line:
+            if line.startswith(">") and genome_reference in line[1:].strip().split():
                 line_list = line[1:].strip().split(" ")
                 genomic_reference = line_list[0]
                 sequence[genomic_reference] = ''
@@ -32,7 +32,8 @@ def parse_fasta_file(fasta_file, genome_reference):
     else:
         with open('fasta_data', 'wb') as file:
             pickle.dump(sequence, file)
-        raise ValueError('Reference Genome not correct:\t' + str(genome_reference))
+        raise ValueError('The specified reference genome could not be found in the FASTA file:\t' 
+                         + str(genome_reference) + "\nPlease try again.")
 
 
 def main():

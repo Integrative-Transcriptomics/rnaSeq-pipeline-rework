@@ -10,7 +10,7 @@ def helpMessage() {
 
     Mandatory arguments:
       --bams                  .bam input files containg the reads
-      --rRNAgenes             Input string of rRNA genes separated by ","
+      --rRNAgenes             Input file in txt format, header: gene,type; body: rRNA genes (example file: rRNA_genes_type.txt)
       --gff                   Input file in gff (.gz) format, annotations
       --fasta                 Input file in fasta format, whole genome
       --genomeReference       Input string of reference genome
