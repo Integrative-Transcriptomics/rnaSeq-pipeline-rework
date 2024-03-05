@@ -22,7 +22,7 @@ current_directory = os.getcwd()
 parrent_directory = os.path.dirname(current_directory)
 data_rRNA_ratio = pd.read_csv(parrent_directory + '/Results/rRNADepletion/rRNA_remaining.csv')
 counts_file = parrent_directory + '/Results/rRNADepletion/counts.txt'
-rRNA_type_file= parrent_directory + '/rRNA_genes_type.txt'
+rRNA_type_file= parrent_directory + '/rRNA_genes_type_ecoli.txt'
 data_expression = pd.read_csv(parrent_directory + '/Results/rRNADepletion/table_data.csv')
 
 # Prepare dropdown
@@ -30,7 +30,7 @@ gene_names = extract_names.extract_gene_names(counts_file)
 sample_names = extract_names.extract_sample_names(counts_file)
 
 # Genome reference names
-genome_reference_names = list(sequence_data.keys())
+genome_reference = list(sequence_data.keys())
 
 # App layout
 app.layout = html.Div([
@@ -56,6 +56,7 @@ app.layout = html.Div([
     html.Div(className='row',
              children = [
                  html.H5(children = ['Wiggle plot for all annotated genes']),
+                 html.H5(children = ['Given Reference Genome:\t' + str(genome_reference[0])]),
                  html.Div(className = 'dropdown',
                           children = [
                               dcc.Dropdown(
@@ -65,7 +66,7 @@ app.layout = html.Div([
                                   placeholder = 'Select sample'
                               )
                           ],
-                          style = dict(width='30%')),
+                          style = dict(width='50%')),
                  html.Div(className = 'dropdown',
                           children = [
                               dcc.Dropdown(
@@ -75,17 +76,7 @@ app.layout = html.Div([
                                   placeholder = 'Select gene'
                               )
                           ],
-                          style = dict(width='30%')),
-                 html.Div(className = 'dropdown',
-                          children = [
-                              dcc.Dropdown(
-                                  id = 'dropdown_genome_reference',
-                                  options = genome_reference_names,
-                                  value = str(genome_reference_names[0]),
-                                  placeholder = 'Select genome reference'
-                              )
-                          ],
-                          style = dict(width='30%')),
+                          style = dict(width='50%'))
              ],
              style=dict(display='flex')),
     html.Br(),
@@ -98,7 +89,7 @@ app.layout = html.Div([
     html.Div(className = 'Sequence output', id='sequence_output',style={'white-space': 'pre-wrap', 'word-wrap': 'break-word'}),
     html.Br(),
     html.Div(className = 'table', id='table',
-             children = [html.H5(children = ['Overview over the top 10 genes with a high expression rate and low variance']),
+             children = [html.H5(children = ['Overview over the top 10 genes with a high expression rate and low variance, normalized with TPM']),
                          dash_table.DataTable(
                              data = data_expression.to_dict('records'),
                              columns = [{"name" :i, "id": i } for i in data_expression.columns],
@@ -158,14 +149,12 @@ def update_graph(col_chosen):
     Output("line_plot", "figure"),
 
     [Input('dropdown_samples', "value"),
-     Input('dropdown_genes', 'value'),
-     Input('dropdown_genome_reference', 'value'),]
+     Input('dropdown_genes', 'value'),]
 )
 
-def update_line_plot(sample, gene, reference):
+def update_line_plot(sample, gene):
     time.sleep(5)
     current_dict = os.getcwd()
-    
     try:
         parrent_dict = os.path.dirname(current_dict)
         sample_name, extension = os.path.splitext(sample)
@@ -177,26 +166,48 @@ def update_line_plot(sample, gene, reference):
         path_bedgraph = parrent_dict + '/Results/rRNADepletion/' + sample_name + '.bedgraph'
         
         counts_data = pdlp.prepare_counts_file(path_counts_txt)
-        bedgraph_data = pdlp.prepare_bedgraph_file(path_bedgraph)
+        bedgraph_data = pdlp.prepare_bedgraph_file(path_bedgraph, genome_reference[0])
         
-        start_and_end_position = pdlp.get_start_and_end_position(counts_data, gene, reference)
-        data = pdlp.prepare_dataset_for_graph(start_and_end_position, bedgraph_data, reference)
+        start_and_end_position = pdlp.get_start_and_end_position(counts_data, gene, genome_reference[0])
+        data = pdlp.prepare_dataset_for_graph(start_and_end_position, bedgraph_data, genome_reference[0])
         
         fig = px.line(data, x = 'x', y = 'y', color_discrete_sequence=['darkgrey'])
         
         fig.update_layout(
-            title = f'Overview over position coverage for the {gene} gene in {sample}',
+            title = f'Overview over position coverage for the {gene} gene in {sample} ',
             xaxis_title='Position',
             yaxis_title='Coverage per position',
         )
         return fig
     except:
-        data = pd.DataFrame({'x': [], 'y': []})
+        '''data = pd.DataFrame({'x': [], 'y': []})
         
         fig = px.line(data, x = 'x', y = 'y', color_discrete_sequence=['darkgrey'])
         
         fig.update_layout(
-            title = 'Please choose a sample, gene and reference genome',
+            title = 'Please choose a sample and a gene',
+            xaxis_title='Position',
+            yaxis_title='Coverage per position',
+        )'''
+        parrent_dict = os.path.dirname(current_dict)
+        sample_name, extension = os.path.splitext(sample)
+        
+        if '.sorted' in sample_name:
+            sample_name = sample_name.replace('.sorted', '')
+
+        path_counts_txt = parrent_dict + '/Results/rRNADepletion/counts.txt'
+        path_bedgraph = parrent_dict + '/Results/rRNADepletion/' + sample_name + '.bedgraph'
+        
+        counts_data = pdlp.prepare_counts_file(path_counts_txt)
+        bedgraph_data = pdlp.prepare_bedgraph_file(path_bedgraph, genome_reference[0])
+        
+        start_and_end_position = pdlp.get_start_and_end_position(counts_data, gene, genome_reference[0])
+        data = pdlp.prepare_dataset_for_graph(start_and_end_position, bedgraph_data, genome_reference[0])
+        
+        fig = px.line(data, x = 'x', y = 'y', color_discrete_sequence=['darkgrey'])
+        
+        fig.update_layout(
+            title = f'Overview over position coverage for the {gene} gene in {sample} ',
             xaxis_title='Position',
             yaxis_title='Coverage per position',
         )
