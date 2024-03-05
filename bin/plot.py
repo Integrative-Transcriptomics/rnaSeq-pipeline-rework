@@ -288,9 +288,10 @@ def readcounts_histogram(counts_txt, rRNA_genes_type):
                         vertical_spacing = 0,
                         subplot_titles=("Upper plot without rRNA genes, lower plot only with rRNA genes", None)
                         )
-    
-    all_colors = ["#{:06x}".format(i) for i in range(0xFFFFFF + 1)]  # Liste aller möglichen Farben
-    random_colors = random.sample(all_colors, number_of_samples) 
+    # Color list for bars
+    all_colors = ['#a6cee3', '#1f78b4', '#b2df8a', '#33a02c', '#fb9a99', '#e31a1c', 
+                  '#fdbf6f', '#ff7f00', '#cab2d6', '#6a3d9a', '#ffff99', '#b15928']  # Liste aller möglichen Farben
+    random_colors = [random.choice(all_colors) for _ in range(number_of_samples)]
     
     max_value_for_y_axis = 0
     # Iterate over each sample

@@ -144,7 +144,7 @@ process depletionCalculation{
 
 process genomecov {
     conda 'environment.yml'
-    publishDir "pubDir/rRNADepletion", mode: 'copy'
+    publishDir "$pubDir/rRNADepletion", mode: 'copy'
 
     input:
     each path(bams)

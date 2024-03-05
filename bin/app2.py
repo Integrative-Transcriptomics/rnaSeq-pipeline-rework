@@ -23,7 +23,7 @@ parrent_directory = os.path.dirname(current_directory)
 data_rRNA_ratio = pd.read_csv(parrent_directory + '/Results/rRNADepletion/rRNA_remaining.csv')
 counts_file = parrent_directory + '/Results/rRNADepletion/counts.txt'
 rRNA_type_file= parrent_directory + '/rRNA_genes_type.txt'
-data_expression = pd.read_csv(parrent_directory + '\Results/rRNADepletion/table_data.csv')
+data_expression = pd.read_csv(parrent_directory + '/Results/rRNADepletion/table_data.csv')
 
 # Prepare dropdown
 gene_names = extract_names.extract_gene_names(counts_file)
@@ -165,30 +165,43 @@ def update_graph(col_chosen):
 def update_line_plot(sample, gene, reference):
     time.sleep(5)
     current_dict = os.getcwd()
-    parrent_dict = os.path.dirname(current_dict)
-    sample_name, extension = os.path.splitext(sample)
     
-    if '.sorted' in sample_name:
-        sample_name = sample_name.replace('.sorted', '')
+    try:
+        parrent_dict = os.path.dirname(current_dict)
+        sample_name, extension = os.path.splitext(sample)
+        
+        if '.sorted' in sample_name:
+            sample_name = sample_name.replace('.sorted', '')
 
-    path_counts_txt = parrent_dict + '/rRNADepletion/counts.txt'
-    path_bedgraph = parrent_dict + '/rRNADepletion/' + sample_name + '.bedgraph'
-    
-    counts_data = pdlp.prepare_counts_file(path_counts_txt)
-    bedgraph_data = pdlp.prepare_bedgraph_file(path_bedgraph)
-    
-    start_and_end_position = pdlp.get_start_and_end_position(counts_data, gene, reference)
-    data = pdlp.prepare_dataset_for_graph(start_and_end_position, bedgraph_data, reference)
-    
-    fig = px.line(data, x = 'x', y = 'y', color_discrete_sequence=['darkgrey'])
-    
-    fig.update_layout(
-        title = f'Overview over position coverage for the {gene} gene in {sample}',
-        xaxis_title='Position',
-        yaxis_title='Coverage per position',
-    )
-    
-    return fig
+        path_counts_txt = parrent_dict + '/Results/rRNADepletion/counts.txt'
+        path_bedgraph = parrent_dict + '/Results/rRNADepletion/' + sample_name + '.bedgraph'
+        
+        counts_data = pdlp.prepare_counts_file(path_counts_txt)
+        bedgraph_data = pdlp.prepare_bedgraph_file(path_bedgraph)
+        
+        start_and_end_position = pdlp.get_start_and_end_position(counts_data, gene, reference)
+        data = pdlp.prepare_dataset_for_graph(start_and_end_position, bedgraph_data, reference)
+        
+        fig = px.line(data, x = 'x', y = 'y', color_discrete_sequence=['darkgrey'])
+        
+        fig.update_layout(
+            title = f'Overview over position coverage for the {gene} gene in {sample}',
+            xaxis_title='Position',
+            yaxis_title='Coverage per position',
+        )
+        return fig
+    except:
+        data = pd.DataFrame({'x': [], 'y': []})
+        
+        fig = px.line(data, x = 'x', y = 'y', color_discrete_sequence=['darkgrey'])
+        
+        fig.update_layout(
+            title = 'Please choose a sample, gene and reference genome',
+            xaxis_title='Position',
+            yaxis_title='Coverage per position',
+        )
+        
+        return fig
 
 
 @callback(
