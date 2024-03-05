@@ -75,7 +75,6 @@ def bar_chart_different_rRNA(rRNA_genes_type, counts_txt):
     
     for count in rRNA_data_tpm[1:]:
         for i in range(0, number_of_arrays):
-            #number_tpm = float(count[i + 7])
             number_tpm = np.log10(float(count[i + 7]))
             data_dict_tpm[f"{rRNA_data_tpm[0][i + 7]}"].append(number_tpm)
     
@@ -87,7 +86,7 @@ def bar_chart_different_rRNA(rRNA_genes_type, counts_txt):
     # Add type to data dict
     data_dict_tpm["type"] = type  
     data_dict_percent["type"] = type
-    
+
     # Prepare for bar chart
     data_tpm = pd.DataFrame(data_dict_tpm)
     data_percent = pd.DataFrame(data_dict_percent)
