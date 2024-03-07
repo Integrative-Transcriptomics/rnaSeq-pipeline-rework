@@ -83,7 +83,6 @@ def prepare_dataset_for_graph(start_and_end_position, bedgraph_data, genome_refe
 
         return data 
 
-
 # Gets genome entry from gene
 def get_genome_reference_of_gene(gene, counts_data):
     
