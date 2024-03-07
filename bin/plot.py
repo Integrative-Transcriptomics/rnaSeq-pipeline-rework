@@ -294,7 +294,7 @@ def readcounts_histogram(counts_txt, rRNA_genes_type):
             else:
                 dict_data1[str(count)] = 1
                 
-         # count how ofen read count appears only for rRNA genes        
+        # count how ofen read count appears only for rRNA genes        
         for count in counts_data_transformed_without_rRNA[i]:
             if str(count) in dict_data2:
                 dict_data2[str(count)] += 1
@@ -334,7 +334,6 @@ def readcounts_histogram(counts_txt, rRNA_genes_type):
                                    ),
                       row=2, col=1)
     
-    #fig.update_yaxes1(range=[0,90])
     fig.update_layout(
         barmode='overlay',
         yaxis1_title="Frequency",
