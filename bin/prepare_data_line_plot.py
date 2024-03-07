@@ -46,8 +46,6 @@ def get_start_and_end_position(counts_data, gene, genome_reference):
     
     return(0,0)
      
-    
-    
 # Takes start and end postion of the gene and calculates all postion inbetween
 # returns data set, that can be used for a line chart
 def prepare_dataset_for_graph(start_and_end_position, bedgraph_data, genome_reference):
@@ -64,7 +62,8 @@ def prepare_dataset_for_graph(start_and_end_position, bedgraph_data, genome_refe
     else:
         # If there are multiple genome references, choose current one
         current_bedgraph_data = bedgraph_data[genome_reference]
-        print(current_bedgraph_data)
+        if not current_bedgraph_data:
+            raise ValueError('No reference genome found.')
     
         # Start and end position
         if len(start_and_end_position) == 2:
@@ -84,3 +83,15 @@ def prepare_dataset_for_graph(start_and_end_position, bedgraph_data, genome_refe
 
         return data 
 
+
+# Gets genome entry from gene
+def get_genome_reference_of_gene(gene, counts_data):
+    
+    # Go through data in counts file 
+    for gene_entry in counts_data:
+        # if gene exists return genome reference
+        if gene_entry[0] == gene:
+            return gene_entry[1]
+        
+    
+    return ''

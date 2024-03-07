@@ -15,6 +15,13 @@ def normalization_percentage(feature_counts_file):
             if (not line.startswith('#')) and (not line.startswith("Geneid")):
                 line_list = line.strip().split('\t')
                 counts_data.append(line_list)
+                
+    # Add Pseudocount to data
+    number_of_genes = len(counts_data)
+    number_of_samples = len(counts_data[0])
+    for i in range(0, number_of_genes):
+        for j in range(7, number_of_samples):
+            counts_data[i][j] = float(counts_data[i][j]) + 1
 
     samples = []
     for gene in counts_data:

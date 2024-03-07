@@ -2,7 +2,7 @@ import argparse
 
 """
     command for execution:
-    python3 tpm_calculation.py -fcf /Users/sarina/Bachelorarbeit/rnaSeq-pipeline-rework/rRNADepletion/counts.txt
+    python3 tpm_calculation.py -fcf /Users/sarina/Bachelorarbeit/rnaSeq-pipeline-rework/Results/rRNADepletion/counts.txt
 """
 
 # Calculates TPM Value for each gene
@@ -21,6 +21,13 @@ def tpm_calculation(feature_counts_file):
             if (not line.startswith('#')) and (not line.startswith("Geneid")):
                 line_list = line.strip().split('\t')
                 counts_data.append(line_list)
+
+    # Add Pseudocount to data
+    number_of_genes = len(counts_data)
+    number_of_samples = len(counts_data[0])
+    for i in range(0, number_of_genes):
+        for j in range(7, number_of_samples):
+            counts_data[i][j] = float(counts_data[i][j]) + 1
     
     rpk_values = []
     per_million_values = []
@@ -28,6 +35,7 @@ def tpm_calculation(feature_counts_file):
     
     # 1) Divide the read counts by the length of each gene in kilobases. This gives you reads per kilobase (RPK).
     for gene in counts_data:
+        
         length = float(gene[5])
         length_in_kbp = length/1000
         

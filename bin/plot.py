@@ -44,10 +44,9 @@ def bar_chart_different_rRNA(rRNA_genes_type, counts_txt):
                 line_list = line.strip().split('\t')
                 counts_data.append(line_list)
     
-    # Replace read counts with calculated tpm values.
+    # Replace read counts with calculated tpm values and percentage values
     number_of_genes = len(counts_data)
     for i in range(0, number_of_genes):
-        entery = None
         if counts_data[i][0] in rRNA_genes:
             entery_tpm = counts_data[i][:7] + tpm_values[i]
             entery_percent = counts_data[i][:7] + norm_percent_values[i]
@@ -66,7 +65,7 @@ def bar_chart_different_rRNA(rRNA_genes_type, counts_txt):
     data_dict_tpm["genes"] = genes 
     data_dict_percent["genes"] = genes
     
-    # create correct number of arrays
+    # create correct number of arrays, number correlates with number of samples
     number_of_arrays = len(rRNA_data_tpm[0]) - 7
     
     for i in range(0, number_of_arrays):
@@ -75,7 +74,7 @@ def bar_chart_different_rRNA(rRNA_genes_type, counts_txt):
     
     for count in rRNA_data_tpm[1:]:
         for i in range(0, number_of_arrays):
-            number_tpm = np.log10(float(count[i + 7])) #Pseudocount löst Problem von log(0) oder soll man extra Fall erstellen das es dann einfach 0 ist?
+            number_tpm = np.log10(float(count[i + 7]))
             data_dict_tpm[f"{rRNA_data_tpm[0][i + 7]}"].append(number_tpm)
     
     for count in rRNA_data_percent[1:]:
@@ -94,11 +93,7 @@ def bar_chart_different_rRNA(rRNA_genes_type, counts_txt):
     data_sum_rRNA_genes = calculate_bar_plot_total_percent_rRNA(data_dict_percent, rRNA_data_percent[0][7:])
     
     #create dict with unique color values
-    color_dict={
-        "5S": "darkblue",
-        "16S": "yellow",
-        "23S": "hotpink"
-    }
+    color_dict={ "5S": "darkblue", "16S": "yellow",  "23S": "hotpink" }
 
     #create color list
     color_list=[]
@@ -162,8 +157,7 @@ def bar_chart_different_rRNA(rRNA_genes_type, counts_txt):
         ),
 )
         
-        
-        
+    # Update Layout of figure
     fig.update_layout(
         barmode='group',
         #title='5S, 16S and 23S Expression in the different samples',
@@ -186,7 +180,6 @@ def bar_chart_different_rRNA(rRNA_genes_type, counts_txt):
         width=1400,  
     )
     
-        
     return fig
     
     
@@ -205,8 +198,8 @@ def calculate_bar_plot_total_percent_rRNA(data_dict_percent, sample_names):
     
     for sample in percent_data:
         fiveS_sum = 0
-        sixteen_sum = 0
-        twentythree_sum = 0
+        sixteenS_sum = 0
+        twentythreeS_sum = 0
         sample_name = sample[0]
         sample_data = []
         for data in sample[1]:
@@ -215,13 +208,13 @@ def calculate_bar_plot_total_percent_rRNA(data_dict_percent, sample_names):
             if type == "5S":
                 fiveS_sum += percent_value
             if type == "16S":
-                sixteen_sum += percent_value
+                sixteenS_sum += percent_value
             if type == "23S":
-                twentythree_sum += percent_value
+                twentythreeS_sum += percent_value
                 
         sample_data.append(fiveS_sum)
-        sample_data.append(sixteen_sum)
-        sample_data.append(twentythree_sum)
+        sample_data.append(sixteenS_sum)
+        sample_data.append(twentythreeS_sum)
 
         percent_sum_data_dict[sample_name] = sample_data
 
@@ -288,12 +281,11 @@ def readcounts_histogram(counts_txt, rRNA_genes_type):
                         subplot_titles=("Upper plot without rRNA genes, lower plot only with rRNA genes", None)
                         )
     # Color list for bars
-    all_colors = ['#a6cee3', '#1f78b4', '#b2df8a', '#33a02c', '#fb9a99', '#e31a1c', 
-                  '#fdbf6f', '#ff7f00', '#cab2d6', '#6a3d9a', '#ffff99', '#b15928']  # Liste aller möglichen Farben
+    all_colors = ['#a6cee3', '#1f78b4', '#b2df8a', '#33a02c', '#fb9a99', '#e31a1c','#fdbf6f', '#ff7f00', '#cab2d6', '#6a3d9a', '#ffff99', '#b15928']  # Liste aller möglichen Farben
     random_colors = [random.choice(all_colors) for _ in range(number_of_samples)]
     
     max_value_for_y_axis = 0
-    # Iterate over each sample
+    # Iterate over each sample and prepare data
     for i in range(0, number_of_samples):
         # count how often read count appears for all genes
         for count in counts_data_transformed[i]:
@@ -302,8 +294,8 @@ def readcounts_histogram(counts_txt, rRNA_genes_type):
             else:
                 dict_data1[str(count)] = 1
                 
+         # count how ofen read count appears only for rRNA genes        
         for count in counts_data_transformed_without_rRNA[i]:
-            # count how ofen read count appears only for rRNA genes
             if str(count) in dict_data2:
                 dict_data2[str(count)] += 1
             else:
@@ -345,13 +337,10 @@ def readcounts_histogram(counts_txt, rRNA_genes_type):
     #fig.update_yaxes1(range=[0,90])
     fig.update_layout(
         barmode='overlay',
-        #title='Histogram of the distribution of read counts per sample',
         yaxis1_title="Frequency",
         yaxis2_title="Frequency",
-        #yaxis2=dict(autorange='reversed', range=[0,90]),
         yaxis1_range=[0,350],
         yaxis2_range=[0,350],
-        #yaxis2_autorange='reversed',
         bargap=0,
         showlegend=True,
         legend=dict(groupclick='toggleitem'),
@@ -397,6 +386,5 @@ def main():
     
     bar_chart_different_rRNA(rRNA_genes, feature_counts)
     readcounts_histogram(feature_counts, rRNA_genes)
-    create_table(rRNA_genes, feature_counts, gff_file)
     
 #main()
