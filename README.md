@@ -30,7 +30,8 @@ Visualization:  app.py
 ## Pipeline Instructions
 - Command for execution
   The command can only be executed if you are in the same folder as the pipeline quality_control_and_depletion_analysis.nf  
-    **nextflow run quality_control_and_depletion_analysis.nf --reads "*fastq.gz" --reference <*.fna.gz> --gff <*.gff.gz> --rRNAgenes <rRNA_genes_type.txt> -profile conda**
+    **nextflow run quality_control_and_depletion_analysis.nf --reads "*fastq.gz" --reference <*.fna.gz> --gff <*.gff.gz> --rRNAgenes rRNA_genes_type.txt -profile conda**
+  Note: The read files and the rRNA_genes_type.txt file need to be in the same directory as the pipeline
 - Additional parameters
     --paired                Paired end reads
     --noQuali               Disable quality control
