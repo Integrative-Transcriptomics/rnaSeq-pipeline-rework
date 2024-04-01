@@ -1,10 +1,3 @@
-import argparse
-
-"""
-    command for execution:
-    python3 tpm_calculation.py -fcf /Users/sarina/Bachelorarbeit/rnaSeq-pipeline-rework/Results/rRNADepletion/counts.txt
-"""
-
 # Calculates TPM Value for each gene
 """
 1. Divide the read counts by the length of each gene in kilobases. This gives you reads per kilobase (RPK).
@@ -70,19 +63,3 @@ def tpm_calculation(feature_counts_file):
     tpm_values_transposed = [[row[i] for row in tpm_values] for i in range(len(tpm_values[0]))] #[[sample1, sample2, ....], [sample1, sample2, ...], ...]
   
     return tpm_values_transposed
-
-def main():
-    # Create the argument parser
-    parser = argparse.ArgumentParser(description="An example script with command-line arguments.")
-
-    # Add command-line arguments
-    parser.add_argument("-fcf", "--feature_counts_file", help="Output file counts.txt of featureCounts", required=True)
-
-    # Parse the command-line arguments
-    args = parser.parse_args()
-    
-    feature_counts_file = args.feature_counts_file
-    
-    tpm_calculation(feature_counts_file)
-
-#main()

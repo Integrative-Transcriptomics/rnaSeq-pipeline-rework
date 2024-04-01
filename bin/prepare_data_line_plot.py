@@ -1,4 +1,3 @@
-import os
 import pandas as pd
 
 # File opens counts file and saves data to data structure

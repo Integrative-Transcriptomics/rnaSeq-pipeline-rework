@@ -12,12 +12,14 @@ def helpMessage() {
       --reads                 FastQ (.gz) input file containg the reads
       --reference             Input File in fasta format (.gz), nucleotide sequences.
       --gff                   Input file in gff (.gz) format, annotations
+      --rRNAgenes             Input file in txt format, header: gene,type; body: rRNA genes (example file: rRNA_genes_type.txt)
 
     Optional arguments:
       --paired                Paired end reads
       --noQuali               Disable quality control
       --noQualiRNA            Disable quality control RNASeq
       --noCounts              Disable feature counts
+      --noDepletionQC           Disable depletion Analysis
       --featureCountsS        FeatureCounts attribute strandedness: unstranded, reverse or forward strandness (default: reverse)
       --g                     FeatureCounts attribute to group features (default: locus_tag)
       --t                     FeatureCounts attribute that should be counted (default: transcript)
@@ -25,7 +27,6 @@ def helpMessage() {
       --M                     FeatureCounts: Count multi-mapping reads
       --O                     FeatureCounts: Count reads overlapping features
       --fraction              FeatureCounts: Fractional counts for multi-mapping/overlapping features (must be used together with -M or -O)
-      --pubDir                The directory where the results will be stored [def: Results]
     """.stripIndent()
 }
 
@@ -39,6 +40,7 @@ if (params.help){
 params.paired = false
 params.noQuali = false
 params.noQualiRNA = false
+params.noDepletionQC = false
 params.noCounts = false
 params.featureCountsS = 'reverse'
 params.g = 'locus_tag'
@@ -55,10 +57,12 @@ params.pubDir = "Results"
 pubDir = file(params.pubDir)
 genome_file = Channel.fromPath(params.reference, checkIfExists: true)
 gff_file = Channel.fromPath(params.gff, checkIfExists: true)
+rRNA_path = Channel.fromPath(params.rRNAgenes, checkIfExists:true)
 
 isPaired = params.paired
 noQualiControl = params.noQuali
-noQualiControlRNA =params.noQualiRNA
+noQualiControlRNA = params.noQualiRNA
+noDepletionQC = params.noDepletionQC
 noFC = params.noCounts
 fcStrandness = params.featureCountsS
 featureCounts_g = params.g
@@ -290,6 +294,7 @@ process samtools{
     output:
     tuple val(id), file("${id}.sorted.bam*")
     tuple val(id), file("${id}.sorted.bam*")
+    
 
     script:
     """
@@ -365,11 +370,139 @@ process multiqc{
     """
 }
 
+// Begin Depletion Analysis
+// counts features for depletion analysis
+process featureCountsAnalysis{
+    publishDir "$pubDir/rRNADepletion", mode: 'copy'
+    conda 'environment.yml'
+
+    when:
+    noDepletionQC == false
+
+    input:
+    val(g)
+    val(t)
+    val(extraAttributes)
+    path(annotation)
+    path(bams)
+
+    output:
+    tuple path("counts.txt"), path("counts.txt.summary")
+
+    script:
+    s = "0"
+    p = ""
+
+    if(fcStrandness == "forward"){
+        s  = "1"
+    } else if (fcStrandness == "reverse"){
+        s = "2"
+    }
+
+    if (isPaired){
+        p = "-p"
+    }
+    script:
+    """
+    featureCounts -a $annotation -s $s -O -M --fraction -t $t -g $g --extraAttributes $extraAttributes -o counts.txt --minOverlap 10 --fracOverlap 0.9 $p $bams
+    """
+}
+
+process depletionCalculationAnalysis{
+    debug true
+    conda 'environment.yml'
+    publishDir "$pubDir/rRNADepletion", mode: 'copy'
+
+    when:
+    noDepletionQC == false
+
+    input:
+    path(featureCounts)
+    val g
+    path(list) 
+
+    output:
+    path("rRNA_remaining.csv")
+
+    script:
+    """
+    compute_ratio.py -c $featureCounts -r $list
+    """
+}
+
+process genomecovAnalysis{
+    conda 'environment.yml'
+    publishDir "$pubDir/rRNADepletion", mode: 'copy'
+
+    when:
+    noDepletionQC == false
+
+    input:
+    each path(bams)
+
+    output:
+    path("*.bedgraph")
+
+    script:
+    """
+    filename=\$(basename "$bams")
+    filename_without_extension="\${filename%.*.*}"
+    bedtools genomecov -d -ibam $bams > \$filename_without_extension.bedgraph
+    """
+ 
+}
+
+process fasta_preparationAnalysis{
+    conda 'environment.yml'
+    publishDir "./bin", mode: 'copy'
+    
+    when:
+    noDepletionQC == false
+
+    input:
+    path(fasta_file)
+
+    output:
+    path("fasta_data")
+
+    script:
+    """
+    prepare_fasta_file.py -f $fasta_file
+    """
+}
+
+process table_preparationAnalysis{
+    conda 'environment.yml'
+    publishDir "$pubDir/rRNADepletion", mode: 'copy'
+
+    when:
+    noDepletionQC == false
+
+    input:
+    path(genes_and_type)
+    path(counts_file)
+    path(gff_file)
+
+    output:
+    path('table_data.csv')
+
+    script:
+    """
+    variance_calculation.py -fcf $counts_file -genesf $genes_and_type  -gff $gff_file
+    """
+}
+
+
 workflow{
     genome_ch = unZipGenome(genome_file) //genome_fasta
+    genome_analysis = genome_ch
     gff_ch = unZipGFF(gff_file)
+    gff_depletion_analysis_1 = gff_ch
+    gff_depletion_analysis_2 = gff_ch
+
     gtf_ch = convertGFFtoGTF(gff_ch)
     gtf_2 = gtf_ch
+    gtf_depletion_analysis = gtf_ch
     fastqc_results_ch = fastqc(reads_fastQC) 
   
     trimming_ch = trimming(reads_trimgalore)
@@ -389,6 +522,8 @@ workflow{
 
     samtools_ch = samtools(alignment_files)
     sorted_alignment_files_bamqc_ch = samtools_ch[0]
+    alignment_files_analysis = samtools_ch[0]
+    files_for_genomecov_analysis = samtools_ch[0]
     sorted_alignment_files_rnaseq_ch = samtools_ch[1]
     
     qualimap_bamqc_results_ch = qualimap_bamqc(sorted_alignment_files_bamqc_ch)
@@ -402,4 +537,30 @@ workflow{
     qualimap_rnaseq_results_ch.collect().ifEmpty([]),
     featureCounts_logs.collect().ifEmpty([])
     )
+
+    // Execute Analysis Pipeline
+    
+    rRNA_path_copy = rRNA_path
+    bams = alignment_files_analysis.flatten().filter{file(it).isFile() && it.name.endsWith('.bam')}.collect()
+    bams_genomecov = bams
+
+    ch_feature_counts = featureCountsAnalysis(featureCounts_g, featureCounts_t, featureCounts_extra, gtf_depletion_analysis, bams)
+    ch_feature_counts
+        | flatten
+        | branch {it ->
+            txt: it.fileName.endsWith('counts.txt')
+            summary:  it.fileName.endsWith('counts.txt.summary')
+        }
+        | set { result }
+
+    counts_file = result.txt
+    ch_depletion_calculation = depletionCalculationAnalysis(result.txt, featureCounts_g, rRNA_path)
+
+    ch_genomecov = genomecovAnalysis(bams_genomecov)
+
+    ch_fasta_file = fasta_preparationAnalysis(genome_analysis)
+
+    ch_table = table_preparationAnalysis(rRNA_path_copy, counts_file, gff_depletion_analysis_2)
+    
+
 }

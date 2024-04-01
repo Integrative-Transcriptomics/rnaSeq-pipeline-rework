@@ -1,14 +1,7 @@
 #!/usr/bin/env python3
 
-import plotly.express as px
-import pandas as pd
 import argparse
-import plotly.graph_objects as go
-from numpy import log as ln
-import numpy as np
 import math
-import sys, getopt
-from glob import glob
 import gff_parser
 import tpm_calculation as tpm
 

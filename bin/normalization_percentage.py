@@ -1,10 +1,5 @@
 import argparse
 
-"""
-    command for execution:
-    python3 normalization_percentage.py -fcf /Users/sarina/Documents/Bachelorarbeit/rnaSeq-pipeline-rework/rRNADepletion/counts.txt
-"""
-
 def normalization_percentage(feature_counts_file):
 
     counts_data = []
@@ -49,19 +44,3 @@ def normalization_percentage(feature_counts_file):
         results.append(percentage_values)
 
     return results
-    
-def main():
-    # Create the argument parser
-    parser = argparse.ArgumentParser(description="An example script with command-line arguments.")
-
-    # Add command-line arguments
-    parser.add_argument("-fcf", "--feature_counts_file", help="Output file counts.txt of featureCounts", required=True)
-
-    # Parse the command-line arguments
-    args = parser.parse_args()
-    
-    feature_counts_file = args.feature_counts_file
-    
-    normalization_percentage(feature_counts_file)
-
-#main()

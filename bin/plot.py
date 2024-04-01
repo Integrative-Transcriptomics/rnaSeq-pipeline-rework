@@ -1,12 +1,9 @@
-import plotly.express as px
 import pandas as pd
-import argparse
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import numpy as np
 import tpm_calculation as tpm 
 import normalization_percentage as norm_percent
-import gff_parser as gff_parser
 import random
 
 # Creates a bar chart for each sample, indicating how much 5S, 16S and 23S rRNA is still present.
@@ -184,6 +181,7 @@ def bar_chart_different_rRNA(rRNA_genes_type, counts_txt):
     
     
 # Bar chart showing the percentage of reads that are 5S, 16S or 23S rRNA
+# Helper Function
 def calculate_bar_plot_total_percent_rRNA(data_dict_percent, sample_names):
 
     type_list = data_dict_percent['type']    
@@ -287,6 +285,8 @@ def readcounts_histogram(counts_txt, rRNA_genes_type):
     max_value_for_y_axis = 0
     # Iterate over each sample and prepare data
     for i in range(0, number_of_samples):
+        dict_data1 = {}
+        dict_data2 = {}
         # count how often read count appears for all genes
         for count in counts_data_transformed[i]:
             if str(count) in dict_data1:
@@ -300,7 +300,7 @@ def readcounts_histogram(counts_txt, rRNA_genes_type):
                 dict_data2[str(count)] += 1
             else:
                 dict_data2[str(count)] = 1
-
+                
         x_values_rRNA = []
         y_values_rRNA = []
     
@@ -338,8 +338,8 @@ def readcounts_histogram(counts_txt, rRNA_genes_type):
         barmode='overlay',
         yaxis1_title="Frequency",
         yaxis2_title="Frequency",
-        yaxis1_range=[0,350],
-        yaxis2_range=[0,350],
+        yaxis1_range=[0,130],
+        yaxis2_range=[0,130],
         bargap=0,
         showlegend=True,
         legend=dict(groupclick='toggleitem'),
@@ -359,31 +359,3 @@ def readcounts_histogram(counts_txt, rRNA_genes_type):
     
     return fig
 
-
-
-# Calls plot functions 
-def main():
-    
-    # Create the argument parser
-    parser = argparse.ArgumentParser(description="An example script with command-line arguments.")
-
-    # Add command-line arguments
-    parser.add_argument("-if", "--rRNA_remaining", help="Path to the remaining rRNA file", required=True)
-    parser.add_argument("-genesf", "--rRNA_genes", help="Path to the file containing all rRNA genes", required=True)
-    parser.add_argument("-fcf", "--feature_counts_file", help="Output file counts.txt of featureCounts", required=True)
-    parser.add_argument("-gff", "--gff_file", help="Gff file input.", required=True)
-
-    # Parse the command-line arguments
-    args = parser.parse_args()
-    
-    rRNA_remaining = args.rRNA_remaining
-    rRNA_genes = args.rRNA_genes
-    feature_counts = args.feature_counts_file
-    gff_file = args.gff_file
-    
-    open("all_plots.html", "w").close()
-    
-    bar_chart_different_rRNA(rRNA_genes, feature_counts)
-    readcounts_histogram(feature_counts, rRNA_genes)
-    
-#main()

@@ -20,6 +20,7 @@ def parse_fasta_file(fasta_file):
                 current_sequence = sequence[genomic_reference]
                 sequence_part = line.strip()
                 sequence_part = current_sequence + sequence_part
+                sequence[genomic_reference] = sequence_part
 
     with open('fasta_data', 'wb') as file:
             pickle.dump(sequence, file)

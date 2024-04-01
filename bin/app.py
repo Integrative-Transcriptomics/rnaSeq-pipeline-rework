@@ -1,14 +1,14 @@
 from dash import Dash, html, dash_table, dcc, callback, Output, Input
 import pandas as pd
 import plotly.express as px
-import extract_names
-import sys
 import dash_bootstrap_components as dbc
+import sys
 import os
-import prepare_data_line_plot as pdlp
 import pickle
-import plot
 import time
+import extract_names
+import plot
+import prepare_data_line_plot as pdlp
 
 with open('fasta_data', "rb") as file:
     sequence_data = pickle.load(file)
@@ -22,7 +22,7 @@ current_directory = os.getcwd()
 parrent_directory = os.path.dirname(current_directory)
 data_rRNA_ratio = pd.read_csv(parrent_directory + '/Results/rRNADepletion/rRNA_remaining.csv')
 counts_file = parrent_directory + '/Results/rRNADepletion/counts.txt'
-rRNA_type_file= parrent_directory + '/rRNA_genes_type_ecoli.txt'
+rRNA_type_file= parrent_directory + '/rRNA_genes_type.txt'
 data_expression = pd.read_csv(parrent_directory + '/Results/rRNADepletion/table_data.csv')
 
 # Prepare dropdown
